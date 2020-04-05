@@ -11,8 +11,8 @@ interface HttpHeaders {
   "content-type": string;
   "user-agent": string;
   "cache-control": string;
-  "accept-encoding": string;
   "content-length": string;
+  "accept-encoding"?: string;
 }
 interface Method {
   path: string;
