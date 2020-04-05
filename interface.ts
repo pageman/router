@@ -19,6 +19,7 @@ interface HttpHeaders {
   "content-length": string;
   "accept-encoding"?: string;
 }
+
 interface Method {
   path: string;
 }
@@ -49,4 +50,6 @@ interface OptionsMethod extends Method {
 
 type Route = GetMethod | PostMethod | PatchMethod | PutMethod | DeleteMethod | OptionsMethod;
 
-export { Route, HtppMethods, HttpHeaders, RequestHandler, ResponseHandler, UrlObject };
+interface Routes extends Partial<Record<HtppMethods, { [key: string]: Callback }>> {}
+
+export { Route, HtppMethods, HttpHeaders, RequestHandler, ResponseHandler, UrlObject, Routes };
