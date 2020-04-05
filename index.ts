@@ -1,13 +1,27 @@
 import http from "http";
 import url from "url";
-import { Route, RequestHandler, HtppMethods, UrlObject, HttpHeaders } from "./interface";
+import { Route, Routes, RequestHandler, HttpMethods, UrlObject, HttpHeaders, Callback } from "./interface";
+
 class Router {
-  private routes: Route[] = [];
+  private routes: Routes = {};
 
   constructor() {}
 
   add(route: Route) {
-    this.routes.push(route);
+    const method = Object.keys(route)[1] as HttpMethods;
+
+    if (!route[method]) {
+      return;
+    }
+
+    const value = route[method] as Callback;
+
+    if (!this.routes[method]) {
+      this.routes[method] = { [route.path]: value };
+      return;
+    }
+
+    this.routes[method]![route.path] = value;
   }
 
   inititalize() {
@@ -23,7 +37,7 @@ class Router {
 
       let query = parsedURL.query as UrlObject;
       let headers = request.headers as HttpHeaders;
-      let method = request.method as HtppMethods;
+      let method = request.method as HttpMethods;
       let body = "";
 
       // Get data from the REQUEST
