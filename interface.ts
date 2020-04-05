@@ -1,9 +1,19 @@
 type HtppMethods = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS";
 type UrlObject = { [key: string]: string };
-type RequestHandler = { path: string; query: UrlObject; headers: any; method: HtppMethods; body: any };
+type RequestHandler = { path: string; query: UrlObject; headers: HttpHeaders; method: HtppMethods; body: any };
 type ResponseHandler = any;
 type Callback = (request: RequestHandler, response: ResponseHandler) => void;
 
+interface HttpHeaders {
+  accept: string;
+  host: string;
+  connection: string;
+  "content-type": string;
+  "user-agent": string;
+  "cache-control": string;
+  "accept-encoding": string;
+  "content-length": string;
+}
 interface Method {
   path: string;
 }
@@ -34,4 +44,4 @@ interface OptionsMethod extends Method {
 
 type Route = GetMethod | PostMethod | PatchMethod | PutMethod | DeleteMethod | OptionsMethod;
 
-export { Route, HtppMethods, RequestHandler, ResponseHandler, UrlObject };
+export { Route, HtppMethods, HttpHeaders, RequestHandler, ResponseHandler, UrlObject };
