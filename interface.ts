@@ -21,7 +21,7 @@ interface HttpHeaders {
 }
 
 type Method = { [key: string]: Callback };
-type Routes = { [key in HttpMethods]?: Method };
+type Routes = { [key in HttpMethods]: Method };
 type RoutesMethod = { [key in HttpMethods]?: Callback };
 
 interface Route extends RoutesMethod {
