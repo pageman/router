@@ -1,8 +1,13 @@
+import http from "http";
+
 type HtppMethods = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS";
 type UrlObject = { [key: string]: string };
 type RequestHandler = { path: string; query: UrlObject; headers: HttpHeaders; method: HtppMethods; body: any };
-type ResponseHandler = any;
 type Callback = (request: RequestHandler, response: ResponseHandler) => void;
+
+interface ResponseHandler extends http.ServerResponse {
+  send: (value: string | number | object) => void;
+}
 
 interface HttpHeaders {
   accept: string;
