@@ -1,8 +1,8 @@
 import http from "http";
 
-type HtppMethods = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS";
+type HttpMethods = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS";
 type UrlObject = { [key: string]: string };
-type RequestHandler = { path: string; query: UrlObject; headers: HttpHeaders; method: HtppMethods; body: any };
+type RequestHandler = { path: string; query: UrlObject; headers: HttpHeaders; method: HttpMethods; body: any };
 type Callback = (request: RequestHandler, response: ResponseHandler) => void;
 
 interface ResponseHandler extends http.ServerResponse {
@@ -20,36 +20,12 @@ interface HttpHeaders {
   "accept-encoding"?: string;
 }
 
-interface Method {
+type Method = { [key: string]: Callback };
+type Routes = { [key in HttpMethods]?: Method };
+type RoutesMethod = { [key in HttpMethods]?: Callback };
+
+interface Route extends RoutesMethod {
   path: string;
 }
 
-interface GetMethod extends Method {
-  GET: Callback;
-}
-
-interface PostMethod extends Method {
-  POST: Callback;
-}
-
-interface PatchMethod extends Method {
-  PATCH: Callback;
-}
-
-interface PutMethod extends Method {
-  PUT: Callback;
-}
-
-interface DeleteMethod extends Method {
-  DELETE: Callback;
-}
-
-interface OptionsMethod extends Method {
-  OPTIONS: Callback;
-}
-
-type Route = GetMethod | PostMethod | PatchMethod | PutMethod | DeleteMethod | OptionsMethod;
-
-interface Routes extends Partial<Record<HtppMethods, { [key: string]: Callback }>> {}
-
-export { Route, HtppMethods, HttpHeaders, RequestHandler, ResponseHandler, UrlObject, Routes };
+export { Route, HttpMethods, HttpHeaders, RequestHandler, ResponseHandler, UrlObject, Routes, Callback };
