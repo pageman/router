@@ -1,9 +1,16 @@
 import http from "http";
 import url from "url";
-import { Route, Routes, RequestHandler, HttpMethods, UrlObject, HttpHeaders, Callback } from "./interface";
+import { Route, Routes, RequestHandler, ResponseHandler, HttpMethods, UrlObject, HttpHeaders, Callback } from "./interface";
 
 class Router {
-  private routes: Routes = {};
+  private routes: Routes = {
+    GET: {},
+    POST: {},
+    PUT: {},
+    PATCH: {},
+    DELETE: {},
+    OPTIONS: {},
+  };
 
   constructor() {}
 
@@ -21,7 +28,7 @@ class Router {
       return;
     }
 
-    this.routes[method]![route.path] = value;
+    this.routes[method][route.path] = value;
   }
 
   inititalize() {
@@ -40,6 +47,21 @@ class Router {
       let method = request.method as HttpMethods;
       let body = "";
 
+      (response as any)["send"] = (value: string | number | object) => {
+        // SET Headers
+        response.setHeader("Content-type", "application/json");
+        response.setHeader("Access-Control-Allow-Origin", "*");
+
+        // SET Status Code to HTTP 200/OK
+        response.writeHead(200);
+
+        // Define data to send on the client
+        const data = JSON.stringify(value);
+
+        // Send data to the client
+        response.end(data);
+      };
+
       // Get data from the REQUEST
       request.on("data", (chunk: any) => {
         // Concat chunks of data
@@ -51,24 +73,8 @@ class Router {
         // Define REQUEST Object
         const req: RequestHandler = { path, query, headers, method, body };
 
-        // Temporary route
-        const route = (req: any, res: any) => {
-          // SET Headers
-          res.setHeader("Content-type", "application/json");
-          res.setHeader("Access-Control-Allow-Origin", "*");
-
-          // SET Status Code to HTTP 200/OK
-          res.writeHead(200);
-
-          // Define data to send on the client
-          const data = JSON.stringify(req);
-
-          // Send data to the client
-          res.end(data);
-        };
-
-        // Pass REQUEST and RESPONSE objects
-        route(req, response);
+        // Get routes with same path and method
+        this.routes[method]![path](req, response as ResponseHandler);
       });
     };
   }
