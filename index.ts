@@ -34,17 +34,8 @@ class Router {
   inititalize() {
     return (request: http.IncomingMessage, response: http.ServerResponse) => {
       // Parse URL
-      let parsedURL = url.parse(request.url || "", true);
+      const parsedURL = url.parse(request.url || "", true);
 
-      // Get the value of URL
-      let path = parsedURL.pathname || "";
-
-      // Sanitize URL string '/request/url/' becomes 'request/url'
-      path = path.replace(/^\/+|\/+$/g, "");
-
-      let query = parsedURL.query as UrlObject;
-      let headers = request.headers as HttpHeaders;
-      let method = request.method as HttpMethods;
       let body = "";
 
       (response as any)["send"] = (value: string | number | object) => {
@@ -72,16 +63,51 @@ class Router {
       request.on("end", () => {
         try {
           // Define REQUEST Object
-          const req: RequestHandler = { path, query, headers, method, body };
+          const req: RequestHandler = this.requestHandlerBuilder(parsedURL || "", request);
+          req.body = body;
 
           // Get routes with same path and method
-          this.routes[method]![path](req, response as ResponseHandler);
+          this.routes[req.method]![req.path](req, response as ResponseHandler);
         } catch (error) {
+          // Set status code to 500/Internal server error
           response.writeHead(500);
+
+          // End request
           response.end();
         }
       });
     };
+  }
+
+  /**
+   * Builds a request handler object.
+   *
+   * @param {url.UrlWithParsedQuery} parsedURL
+   *        Parsed url string from `request.url`.
+   *
+   * @param {Object} request
+   *         An object that describe the request.
+   *
+   * @return { RequestHandler }
+   *         Request Handler object
+   */
+  private requestHandlerBuilder(parsedURL: url.UrlWithParsedQuery, request: http.IncomingMessage): RequestHandler {
+    // Get the value of URL
+    const pathName = parsedURL.pathname || "";
+
+    // Sanitize URL string '/request/url/' becomes 'request/url'
+    const path = pathName.replace(/^\/+|\/+$/g, "");
+
+    // Get the value of query
+    const query = parsedURL.query as UrlObject;
+
+    // Get the value of headers from request
+    const headers = request.headers as HttpHeaders;
+
+    // Get the value of method from request
+    const method = request.method as HttpMethods;
+
+    return { path, query, headers, method, body: "" };
   }
 }
 
