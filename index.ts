@@ -2,6 +2,34 @@ import http from "http";
 import url from "url";
 import { Route, Routes, RequestHandler, ResponseHandler, HttpMethods, UrlObject, HttpHeaders, Callback } from "./interface";
 
+/**
+ * Creates a mapping of routes for all the incomming request.
+ * Provides a neat way of defining routes using an array of route object on the constructor.
+ * Add routes dynamically with a route object.
+ * Enable to handle multiple types of http methods.
+ *
+ * @example
+ *
+ * const router = new Router();
+ *
+ * // or
+ *
+ * const router = new Router([
+ *  {
+ *    path: "<route-name>",
+ *    GET: (req, res) => {
+ *       // handle GET request here
+ *    }
+ *  },
+ *  {
+ *    path: "<route-name>",
+ *    POST: (req, res) => {
+ *        // handle POST request here
+ *    }
+ *  },
+ *  ...
+ * ]);
+ */
 class Router {
   private routes: Routes = {
     GET: {},
