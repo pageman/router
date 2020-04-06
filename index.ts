@@ -53,8 +53,7 @@ class Router {
       request.on("end", () => {
         try {
           // Define REQUEST Object
-          const req: RequestHandler = this.requestHandlerBuilder(parsedURL || "", request);
-          req.body = body;
+          const req: RequestHandler = this.requestHandlerBuilder(parsedURL || "", request, body);
 
           // Get routes with same path and method
           this.routes[req.method]![req.path](req, response as ResponseHandler);
@@ -81,7 +80,7 @@ class Router {
    * @return { RequestHandler }
    *         Request Handler object
    */
-  private requestHandlerBuilder(parsedURL: url.UrlWithParsedQuery, request: http.IncomingMessage): RequestHandler {
+  private requestHandlerBuilder(parsedURL: url.UrlWithParsedQuery, request: http.IncomingMessage, body: string): RequestHandler {
     // Get the value of URL
     const pathName = parsedURL.pathname || "";
 
@@ -97,7 +96,7 @@ class Router {
     // Get the value of method from request
     const method = request.method as HttpMethods;
 
-    return { path, query, headers, method, body: "" };
+    return { path, query, headers, method, body };
   }
 
   /**
