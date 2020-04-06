@@ -38,20 +38,7 @@ class Router {
 
       let body = "";
 
-      (response as any)["send"] = (value: string | number | object) => {
-        // SET Headers
-        response.setHeader("Content-type", "application/json");
-        response.setHeader("Access-Control-Allow-Origin", "*");
-
-        // SET Status Code to HTTP 200/OK
-        response.writeHead(200);
-
-        // Define data to send on the client
-        const data = JSON.stringify(value);
-
-        // Send data to the client
-        response.end(data);
-      };
+      (response as any)["send"] = this.requestSender(response);
 
       // Get data from the REQUEST
       request.on("data", (chunk: any) => {
@@ -108,6 +95,32 @@ class Router {
     const method = request.method as HttpMethods;
 
     return { path, query, headers, method, body: "" };
+  }
+
+  /**
+   * Creates an anonymous function that accepts `value` as parameters and used as `default sender` method.
+   *
+   * @param {http.ServerResponse} response
+   *        Response object from NodeJS.
+   *
+   * @return { Function }
+   *         Anonymous function for default sending of response.
+   */
+  private requestSender(response: http.ServerResponse): (value: string | number | object) => void {
+    return (value: string | number | object) => {
+      // SET Headers
+      response.setHeader("Content-type", "application/json");
+      response.setHeader("Access-Control-Allow-Origin", "*");
+
+      // SET Status Code to HTTP 200/OK
+      response.writeHead(200);
+
+      // Define data to send on the client
+      const data = JSON.stringify(value);
+
+      // Send data to the client
+      response.end(data);
+    };
   }
 }
 
