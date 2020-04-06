@@ -14,20 +14,24 @@ class Router {
 
   constructor() {}
 
-  add(route: Route) {
+  /**
+   * Add a route to be mapped on the routes object.
+   * @example
+   * add({
+   *   path: "route",
+   *   GET: (req, res) => {
+   *      // handle request here
+   *   },
+   * })
+   */
+  add(route: Route): void {
+    // Get the method type of the route
     const method = Object.keys(route)[1] as HttpMethods;
 
-    if (!route[method]) {
-      return;
-    }
-
+    // Get the function associated with the method
     const value = route[method] as Callback;
 
-    if (!this.routes[method]) {
-      this.routes[method] = { [route.path]: value };
-      return;
-    }
-
+    // Add the function and the path as the key on the routes object
     this.routes[method][route.path] = value;
   }
 
