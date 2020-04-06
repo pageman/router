@@ -113,11 +113,8 @@ class Router {
       // SET Status Code to HTTP 200/OK
       response.writeHead(200);
 
-      // Define data to send on the client
-      const data = JSON.stringify(value);
-
       // Send data to the client
-      response.end(data);
+      response.end(value);
     };
   }
 
