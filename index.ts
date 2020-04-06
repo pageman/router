@@ -36,15 +36,18 @@ class Router {
       // Parse URL
       const parsedURL = url.parse(request.url || "", true);
 
-      let body = "";
-
+      // Define default send function
       (response as any)["send"] = this.requestSender(response);
 
+      let body = "";
+
+      // Concat chunks of data
+      const chunk = (chunks: any) => {
+        body += chunks;
+      };
+
       // Get data from the REQUEST
-      request.on("data", (chunk: any) => {
-        // Concat chunks of data
-        body += chunk;
-      });
+      request.on("data", chunk);
 
       // Listen to END event
       request.on("end", () => {
