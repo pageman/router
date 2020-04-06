@@ -22,7 +22,7 @@ router.add({
   },
 });
 
-const server = http.createServer(router.inititalize());
+const server = http.createServer(router.initialize());
 
 server.listen(PORT, () => {
   console.log(`Listening on port ${PORT}!`);

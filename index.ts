@@ -31,7 +31,13 @@ class Router {
     this.routes[method][route.path] = value;
   }
 
-  inititalize() {
+  /**
+   * Initialize the routes and event listeners.
+   *
+   * @return { Function }
+   *         Anonymous function.
+   */
+  initialize(): (request: http.IncomingMessage, response: http.ServerResponse) => void {
     return (request: http.IncomingMessage, response: http.ServerResponse) => {
       // Define default send function
       (response as any)["send"] = this.requestSender(response);
