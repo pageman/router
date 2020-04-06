@@ -70,11 +70,16 @@ class Router {
 
       // Listen to END event
       request.on("end", () => {
-        // Define REQUEST Object
-        const req: RequestHandler = { path, query, headers, method, body };
+        try {
+          // Define REQUEST Object
+          const req: RequestHandler = { path, query, headers, method, body };
 
-        // Get routes with same path and method
-        this.routes[method]![path](req, response as ResponseHandler);
+          // Get routes with same path and method
+          this.routes[method]![path](req, response as ResponseHandler);
+        } catch (error) {
+          response.writeHead(500);
+          response.end();
+        }
       });
     };
   }
