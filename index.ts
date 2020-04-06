@@ -33,9 +33,6 @@ class Router {
 
   inititalize() {
     return (request: http.IncomingMessage, response: http.ServerResponse) => {
-      // Parse URL
-      const parsedURL = url.parse(request.url || "", true);
-
       // Define default send function
       (response as any)["send"] = this.requestSender(response);
 
@@ -49,22 +46,8 @@ class Router {
       // Get data from the REQUEST
       request.on("data", chunk);
 
-      // Listen to END event
-      request.on("end", () => {
-        try {
-          // Define REQUEST Object
-          const req: RequestHandler = this.requestHandlerBuilder(parsedURL || "", request, body);
-
-          // Get routes with same path and method
-          this.routes[req.method]![req.path](req, response as ResponseHandler);
-        } catch (error) {
-          // Set status code to 500/Internal server error
-          response.writeHead(500);
-
-          // End request
-          response.end();
-        }
-      });
+      // Listen to end event
+      request.on("end", this.requestEndListener(request, response, body));
     };
   }
 
@@ -80,7 +63,10 @@ class Router {
    * @return { RequestHandler }
    *         Request Handler object
    */
-  private requestHandlerBuilder(parsedURL: url.UrlWithParsedQuery, request: http.IncomingMessage, body: string): RequestHandler {
+  private requestHandlerBuilder(request: http.IncomingMessage, body: string): RequestHandler {
+    // Parse request URL
+    const parsedURL = url.parse(request.url || "", true);
+
     // Get the value of URL
     const pathName = parsedURL.pathname || "";
 
@@ -122,6 +108,39 @@ class Router {
 
       // Send data to the client
       response.end(data);
+    };
+  }
+
+  /**
+   * A function that listen to an event when request is ended and execute an anonymous function to send a response to the client.
+   *
+   * @param {http.IncomingMessage} request
+   *         An object that describe the request.
+   *
+   * @param {http.ServerResponse} response
+   *        Server Response object.
+   *
+   * @param {string} body
+   *        String of data chunks from the request data listener.
+   *
+   * @return {Function}
+   *         Anonymous function which returns void.
+   */
+  private requestEndListener(request: http.IncomingMessage, response: http.ServerResponse, body: string): () => void {
+    // Define a Request Handler object
+    const req: RequestHandler = this.requestHandlerBuilder(request, body);
+
+    return () => {
+      try {
+        // Get routes with same path and method
+        this.routes[req.method]![req.path](req, response as ResponseHandler);
+      } catch (error) {
+        // Set status code to 500/Internal server error
+        response.writeHead(500);
+
+        // End request
+        response.end();
+      }
     };
   }
 }
