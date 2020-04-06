@@ -7,28 +7,6 @@ import { Route, Routes, RequestHandler, ResponseHandler, HttpMethods, UrlObject,
  * Provides a neat way of defining routes using an array of route object on the constructor.
  * Add routes dynamically with a route object.
  * Enable to handle multiple types of http methods.
- *
- * @example
- *
- * const router = new Router();
- *
- * // or
- *
- * const router = new Router([
- *  {
- *    path: "<route-name>",
- *    GET: (req, res) => {
- *       // handle GET request here
- *    }
- *  },
- *  {
- *    path: "<route-name>",
- *    POST: (req, res) => {
- *        // handle POST request here
- *    }
- *  },
- *  ...
- * ]);
  */
 class Router {
   private routes: Routes = {
@@ -40,7 +18,29 @@ class Router {
     OPTIONS: {},
   };
 
-  constructor() {}
+  /**
+   * Add routes from a route object array. Accepts multiple different routes with different method types.
+   *
+   * @param routes An array of route object describing a path and method function. `OPTIONAL`
+   * @example
+   *
+   * const router = new Router();
+   *
+   * // or
+   *
+   * const router = new Router([
+   *  {
+   *    path: "<route-name>",
+   *    GET: (req, res) => { }
+   *  },
+   *  {
+   *    path: "<route-name>",
+   *    POST: (req, res) => { }
+   *  },
+   *  ...
+   * ]);
+   */
+  constructor(routes?: Route[]) {}
 
   /**
    * Add a route to be mapped on the routes object.
