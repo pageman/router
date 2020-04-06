@@ -16,6 +16,8 @@ class Router {
 
   /**
    * Add a route to be mapped on the routes object.
+   *
+   * @param route An object describing a path and method function
    * @example
    * add({
    *   path: "route",
@@ -38,8 +40,7 @@ class Router {
   /**
    * Initialize the routes and event listeners.
    *
-   * @return { Function }
-   *         Anonymous function.
+   * @return Anonymous function.
    */
   initialize(): (request: http.IncomingMessage, response: http.ServerResponse) => void {
     return (request: http.IncomingMessage, response: http.ServerResponse) => {
@@ -64,14 +65,9 @@ class Router {
   /**
    * Builds a request handler object.
    *
-   * @param {url.UrlWithParsedQuery} parsedURL
-   *        Parsed url string from `request.url`.
-   *
-   * @param {Object} request
-   *         An object that describe the request.
-   *
-   * @return { RequestHandler }
-   *         Request Handler object
+   * @param parsedURL Parsed url string from `request.url`.
+   * @param request An object that describe the request.
+   * @returns Request Handler object
    */
   private requestHandlerBuilder(request: http.IncomingMessage, body: string): RequestHandler {
     // Parse request URL
@@ -98,11 +94,8 @@ class Router {
   /**
    * Creates an anonymous function that accepts `value` as parameters and used as `default sender` method.
    *
-   * @param {http.ServerResponse} response
-   *        Response object from NodeJS.
-   *
-   * @return { Function }
-   *         Anonymous function for default sending of response.
+   * @param response Response object from NodeJS.
+   * @return Anonymous function for default sending of response.
    */
   private requestSender(response: http.ServerResponse): (value: string | number | object) => void {
     return (value: string | number | object) => {
@@ -121,17 +114,10 @@ class Router {
   /**
    * A function that listen to an event when request is ended and execute an anonymous function to send a response to the client.
    *
-   * @param {http.IncomingMessage} request
-   *         An object that describe the request.
-   *
-   * @param {http.ServerResponse} response
-   *        Server Response object.
-   *
-   * @param {string} body
-   *        String of data chunks from the request data listener.
-   *
-   * @return {Function}
-   *         Anonymous function which returns void.
+   * @param request An object that describe the request.
+   * @param response Server Response object.
+   * @param body String of data chunks from the request data listener.
+   * @return Anonymous function which returns void.
    */
   private requestEndListener(request: http.IncomingMessage, response: http.ServerResponse, body: string): () => void {
     // Define a Request Handler object
