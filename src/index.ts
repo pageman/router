@@ -1,6 +1,6 @@
 import http from "http";
 import url from "url";
-import { Route, Routes, RequestHandler, ResponseHandler, HttpMethods, UrlObject, HttpHeaders, Callback } from "./interface";
+import { Route, Routes, RequestHandler, ResponseHandler, HttpMethods, UrlObject, HttpHeaders, Callback } from "../interface";
 
 /**
  * Creates a mapping of routes for all the incomming request.
