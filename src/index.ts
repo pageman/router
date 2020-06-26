@@ -1,4 +1,5 @@
-import { Routes, RequestMethod, Middleware, ContextObject, AdditionalResponseObjectFunctions, ResponseObject } from "./interfaces";
+import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject } from "./interfaces";
+import ResponseFunctions from "./response_functions";
 import methods from "./methods";
 import http from "http";
 
@@ -64,30 +65,7 @@ class Router {
   }
 
   private createResponseObject(res: http.ServerResponse): ResponseObject {
-    const resFunctions: AdditionalResponseObjectFunctions = {
-      send: (value: any) => {
-        if (value instanceof Object) {
-          res.writeHead(200, { "Content-Type": "application/json" });
-          value = JSON.stringify(value);
-        } else {
-          res.writeHead(200, { "Content-Type": "text/plain" });
-        }
-
-        res.write(value);
-        res.end();
-      },
-      json: (json: object) => {
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.write(JSON.stringify(json));
-        res.end();
-      },
-      html: (html: string) => {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.write(html);
-        res.end();
-      },
-    };
-    return Object.assign(res, resFunctions);
+    return Object.assign(res, new ResponseFunctions(res));
   }
 
   private checkUrlForParams(index: number) {
