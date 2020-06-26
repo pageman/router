@@ -1,4 +1,4 @@
-import { Routes, RequestMethod, Middleware, MethodFunction } from "./interfaces";
+import { Routes, RequestMethod, Middleware, MethodFunction, ContextObject } from "./interfaces";
 import methods from "./methods";
 import http from "http";
 
@@ -23,11 +23,8 @@ class Router {
         throw new Error("Request path doesn't exist!");
       }
 
-      this.routes[index][url][req.method?.toLocaleLowerCase() as RequestMethod]({
-        req,
-        res: this.createResponseObject(res),
-        body: {},
-      });
+      const context = this.createContextObject(req, res);
+      this.requestHandler(index, req.method?.toLocaleLowerCase() as RequestMethod, url, context);
     };
   }
 
@@ -36,23 +33,23 @@ class Router {
     const { index, found } = this.findUrl(requestPath);
 
     if (index >= 0 && found) {
-      // add method to existing object in routes array
+      // Add method to existing object in routes array
       this.routes[index][url] = { [method]: fn };
       return;
     }
 
-    // add method new object in routes array
+    // Add method new object in routes array
     this.routes.push({ [url]: { [method]: fn } });
   }
 
-  requestHandler(options: { method: RequestMethod; url: string; fn?: Middleware }): void {
-    console.log(options);
+  private requestHandler(index: number, method: RequestMethod, url: string, context: ContextObject): void {
+    this.routes[index][url][method](context);
   }
 
   private findUrl(url: string = ""): { index: number; found: boolean } {
     let index: number = -1;
 
-    // Add the function and the path as the key on the routes object
+    // Find the key for the route if existed
     const found = this.routes.some((item: any, idx: number): boolean => {
       index = idx;
       return Boolean(item[url]);
@@ -78,11 +75,22 @@ class Router {
   removePrefix(url: string) {
     return url.substring(1);
   }
+
+  private createContextObject(req: http.IncomingMessage, res: http.ServerResponse) {
+    return {
+      req,
+      res: this.createResponseObject(res),
+      body: {},
+      params: {},
+      query: {},
+    };
+  }
 }
 
+// Add all the HTTP Methods as a function to Router
 methods.forEach((method: RequestMethod) => {
   Router.prototype[method] = function (url: string, fn: Middleware) {
-    return this.add(method, url, fn);
+    this.add(method, url, fn);
   };
 });
 
