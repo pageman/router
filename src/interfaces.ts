@@ -6,12 +6,14 @@ export interface RequestObject extends http.IncomingMessage {
   params?: any;
   query?: any;
 }
-export interface ResponseObject extends http.ServerResponse {
-  send: (args: any) => void;
-  setHeader: (args: any) => void;
-  json: (json: object) => void;
-  html: (html: string) => void;
+
+export interface AdditionalResponseObjectFunctions {
+  send(args: any): void;
+  json(json: object): void;
+  html(html: string): void;
 }
+
+export interface ResponseObject extends http.ServerResponse, AdditionalResponseObjectFunctions {}
 
 export interface ContextObject {
   req: RequestObject;
