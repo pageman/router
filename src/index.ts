@@ -1,4 +1,4 @@
-import { Routes, RequestMethod, Middleware, ContextObject } from "./interfaces";
+import { Routes, RequestMethod, Middleware, ContextObject, AdditionalResponseObjectFunctions } from "./interfaces";
 import methods from "./methods";
 import http from "http";
 
@@ -48,30 +48,51 @@ class Router {
     this.routes[index][url][method](context);
   }
 
-  private findUrl(url: string = ""): { index: number; found: boolean } {
+  private findUrl(url: string = ""): { index: number; found: boolean; params: any } {
     let index: number = -1;
+    let params = {};
 
     // Find the key for the route if existed
     const found = this.routes.some((item: any, idx: number): boolean => {
+      // Retrieve params if there are any
+      params = this.checkUrlForParams(idx);
       index = idx;
       return Boolean(item[url]);
     });
 
-    return { index, found };
+    return { index, found, params };
   }
 
   private createResponseObject(res: http.ServerResponse) {
-    const resFunctions = {
+    const resFunctions: AdditionalResponseObjectFunctions = {
       send: (value: any) => {
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.write(JSON.stringify(value));
+        if (value instanceof Object) {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          value = JSON.stringify(value);
+        } else {
+          res.writeHead(200, { "Content-Type": "text/plain" });
+        }
+
+        res.write(value);
         res.end();
       },
-      setHeader: () => {},
-      json: () => {},
-      html: () => {},
+      json: (json: object) => {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.write(JSON.stringify(json));
+        res.end();
+      },
+      html: (html: string) => {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.write(html);
+        res.end();
+      },
     };
     return Object.assign(res, resFunctions);
+  }
+
+  private checkUrlForParams(index: number) {
+    Object.keys(this.routes[index]);
+    return {};
   }
 
   private removePrefix(url: string) {
