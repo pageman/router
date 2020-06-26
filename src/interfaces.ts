@@ -23,8 +23,9 @@ export interface ContextObject {
 
 // TYPES
 
+export type MethodFunction = (url: string, fn?: Middleware) => void;
 export type NextFunction = (args?: any) => void;
 export type Middleware = (obj: ContextObject, next?: NextFunction) => void;
-export type RequestMethod = "get" | "post" | "put" | "patch" | "delete" | "head" | "options";
+export type RequestMethod = "get" | "post" | "put" | "patch" | "delete" | "options";
 export type Route = { [method: string]: Middleware } & { url: string };
 export type Routes = Route[];
