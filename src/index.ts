@@ -74,7 +74,7 @@ class Router {
     return Object.assign(res, resFunctions);
   }
 
-  removePrefix(url: string) {
+  private removePrefix(url: string) {
     return url.substring(1);
   }
 
