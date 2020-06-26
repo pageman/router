@@ -1,4 +1,4 @@
-import { Routes, RequestMethod, Middleware, ContextObject, AdditionalResponseObjectFunctions } from "./interfaces";
+import { Routes, RequestMethod, Middleware, ContextObject, AdditionalResponseObjectFunctions, ResponseObject } from "./interfaces";
 import methods from "./methods";
 import http from "http";
 
@@ -63,7 +63,7 @@ class Router {
     return { index, found, params };
   }
 
-  private createResponseObject(res: http.ServerResponse) {
+  private createResponseObject(res: http.ServerResponse): ResponseObject {
     const resFunctions: AdditionalResponseObjectFunctions = {
       send: (value: any) => {
         if (value instanceof Object) {
