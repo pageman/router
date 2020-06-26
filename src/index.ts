@@ -32,17 +32,12 @@ class Router {
   }
 
   add(method: RequestMethod, url: string, fn: Middleware) {
-    let urlIndex: number = -1;
+    const requestPath = this.removePrefix(url ?? "");
+    const { index, found } = this.findUrl(requestPath);
 
-    // Add the function and the path as the key on the routes object
-    const urlFound = this.routes.some((item: any, index: number): boolean => {
-      urlIndex = index;
-      return Boolean(item[url]);
-    });
-
-    if (urlIndex >= 0 && urlFound) {
+    if (index >= 0 && found) {
       // add method to existing object in routes array
-      this.routes[urlIndex][url] = { [method]: fn };
+      this.routes[index][url] = { [method]: fn };
       return;
     }
 
