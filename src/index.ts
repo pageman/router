@@ -1,14 +1,14 @@
-import { Routes, RequestMethod, Middleware, MethodFunction, ContextObject } from "./interfaces";
+import { Routes, RequestMethod, Middleware, ContextObject } from "./interfaces";
 import methods from "./methods";
 import http from "http";
 
 interface Router {
-  get: MethodFunction;
-  post: MethodFunction;
-  put: MethodFunction;
-  patch: MethodFunction;
-  delete: MethodFunction;
-  options: MethodFunction;
+  get(path: string, fn: Middleware): void;
+  post(path: string, fn: Middleware): void;
+  put(path: string, fn: Middleware): void;
+  patch(path: string, fn: Middleware): void;
+  delete(path: string, fn: Middleware): void;
+  options(path: string, fn: Middleware): void;
 }
 
 class Router {
