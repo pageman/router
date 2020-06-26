@@ -28,18 +28,20 @@ class Router {
     };
   }
 
-  add(method: RequestMethod, url: string, fn: Middleware) {
+  add(method: RequestMethod, url: string, fn: Middleware): Router {
     const requestPath = this.removePrefix(url ?? "");
     const { index, found } = this.findUrl(requestPath);
 
     if (index >= 0 && found) {
       // Add method to existing object in routes array
       this.routes[index][url] = { [method]: fn };
-      return;
+      return this;
     }
 
     // Add method new object in routes array
     this.routes.push({ [url]: { [method]: fn } });
+
+    return this;
   }
 
   private requestHandler(index: number, method: RequestMethod, url: string, context: ContextObject): void {
@@ -90,7 +92,7 @@ class Router {
 // Add all the HTTP Methods as a function to Router
 methods.forEach((method: RequestMethod) => {
   Router.prototype[method] = function (url: string, fn: Middleware) {
-    this.add(method, url, fn);
+    return this.add(method, url, fn);
   };
 });
 
