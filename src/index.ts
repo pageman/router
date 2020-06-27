@@ -102,14 +102,8 @@ class Router {
     return url.substring(1);
   }
 
-  private createContextObject(req: http.IncomingMessage, res: ResponseObject) {
-    return {
-      req,
-      res,
-      params: {},
-      body: {},
-      query: {},
-    };
+  private createContextObject(req: RequestObject, res: ResponseObject) {
+    return { req, res, params: req.params, body: req.body, query: req.query };
   }
 }
 
