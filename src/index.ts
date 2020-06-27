@@ -1,6 +1,7 @@
 import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject } from "./interfaces";
 import response from "./response";
 import RequestHelper from "./request";
+import bodyParser from "./body_parser";
 import methods from "./methods";
 import Url from "./url";
 import http from "http";
@@ -32,11 +33,13 @@ class Router {
         throw new Error("Request path doesn't exist!");
       }
 
-      const reqProps = this.request.props(params, {}, query);
-      const context = this.createContextObject(this.request.obj(req, reqProps), response(res));
-      const method = req.method?.toLocaleLowerCase() as RequestMethod;
+      bodyParser(req, (body: any) => {
+        const reqProps = this.request.props(params, body, query);
+        const context = this.createContextObject(this.request.obj(req, reqProps), response(res));
+        const method = req.method?.toLocaleLowerCase() as RequestMethod;
 
-      this.requestHandler(index, method, key, context);
+        this.requestHandler(index, method, key, context);
+      });
     };
   }
 
