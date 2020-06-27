@@ -32,7 +32,7 @@ class Router {
         throw new Error("Request path doesn't exist!");
       }
 
-      const reqProps = this.request.createRequestObjectProps(params, {}, query);
+      const reqProps = this.request.props(params, {}, query);
       const context = this.createContextObject(this.request.createRequestObject(req, reqProps), this.createResponseObject(res));
       const method = req.method?.toLocaleLowerCase() as RequestMethod;
 

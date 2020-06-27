@@ -6,7 +6,7 @@ export = class RequestHelper {
     return Object.assign(req, props);
   }
 
-  createRequestObjectProps(params: RegExpExecArray | null, body: any, query: string): RequestObjectProps {
+  props(params: RegExpExecArray | null, body: any, query: string): RequestObjectProps {
     return { params: params?.groups, body, query: this.createQueryObject(query) };
   }
 
