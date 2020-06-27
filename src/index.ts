@@ -56,6 +56,13 @@ class Router {
   }
 
   private requestHandler(index: number, method: RequestMethod, url: string, context: ContextObject): void {
+    const routeMethodKeys = Object.keys(this.routes[index][url]);
+    const hasMethod = routeMethodKeys.includes(method);
+
+    if (!hasMethod) {
+      throw new Error(`Request ${method.toLocaleUpperCase()} method on path '/${url}' not found!`);
+    }
+
     this.routes[index][url][method](context);
   }
 
