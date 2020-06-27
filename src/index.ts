@@ -1,5 +1,6 @@
-import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject, RequestObjectProps } from "./interfaces";
+import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject } from "./interfaces";
 import ResponseFunctions from "./response_functions";
+import RequestHelper from "./request";
 import methods from "./methods";
 import Url from "./url";
 import http from "http";
@@ -15,9 +16,11 @@ interface Router {
 
 class Router {
   url: Url;
+  request: RequestHelper;
 
   constructor(private routes: Routes = []) {
     this.url = new Url();
+    this.request = new RequestHelper();
   }
 
   get init() {
@@ -29,8 +32,8 @@ class Router {
         throw new Error("Request path doesn't exist!");
       }
 
-      const reqProps = this.createRequestObjectProps(params, {}, query);
-      const context = this.createContextObject(this.createRequestObject(req, reqProps), this.createResponseObject(res));
+      const reqProps = this.request.createRequestObjectProps(params, {}, query);
+      const context = this.createContextObject(this.request.createRequestObject(req, reqProps), this.createResponseObject(res));
       const method = req.method?.toLocaleLowerCase() as RequestMethod;
 
       this.requestHandler(index, method, key, context);
@@ -60,37 +63,12 @@ class Router {
     return Object.assign(res, ResponseFunctions(res));
   }
 
-  private createRequestObject(req: http.IncomingMessage, props: RequestObjectProps): RequestObject {
-    return Object.assign(req, props);
-  }
-
-  private createRequestObjectProps(params: RegExpExecArray | null, body: any, query: string): RequestObjectProps {
-    return { params: params?.groups, body, query: this.createQueryObject(query) };
-  }
-
   private removePrefix(url: string) {
     return url.substring(1);
   }
 
   private createContextObject(req: RequestObject, res: ResponseObject) {
     return { req, res, params: req.params, body: req.body, query: req.query };
-  }
-
-  private createQueryObject(query: string): { [key: string]: string } | {} {
-    const noQuestionMark = query.substring(1);
-    const queries = noQuestionMark.split("&").filter((quer) => quer);
-    const queryObject = queries.reduce((acc: { [key: string]: string }, cur): { [key: string]: string } => {
-      if (cur.includes("=")) {
-        const [key, value] = cur.split("=");
-        acc[key] = value;
-      } else {
-        acc[cur] = "";
-      }
-
-      return acc;
-    }, {});
-
-    return queryObject;
   }
 }
 
