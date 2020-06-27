@@ -3,8 +3,8 @@ import http from "http";
 // INTERFACES
 export interface RequestObject extends http.IncomingMessage {
   body?: any;
-  params?: any;
-  query?: any;
+  params?: { [key: string]: string };
+  query?: { [key: string]: string };
 }
 
 export interface AdditionalResponseObjectFunctions {
