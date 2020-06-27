@@ -6,12 +6,12 @@ import Url from "./url";
 import http from "http";
 
 interface Router {
-  get(path: string, fn: Middleware): void;
-  post(path: string, fn: Middleware): void;
-  put(path: string, fn: Middleware): void;
-  patch(path: string, fn: Middleware): void;
-  delete(path: string, fn: Middleware): void;
-  options(path: string, fn: Middleware): void;
+  get(path: string, fn: Middleware): Router;
+  post(path: string, fn: Middleware): Router;
+  put(path: string, fn: Middleware): Router;
+  patch(path: string, fn: Middleware): Router;
+  delete(path: string, fn: Middleware): Router;
+  options(path: string, fn: Middleware): Router;
 }
 
 class Router {
