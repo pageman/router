@@ -1,169 +1,88 @@
+import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject } from "./interfaces";
+import response from "./response";
+import RequestHelper from "./request";
+import bodyParser from "./body_parser";
+import methods from "./methods";
+import Url from "./url";
 import http from "http";
-import url from "url";
-import { Route, Routes, RequestHandler, ResponseHandler, HttpMethods, UrlObject, HttpHeaders, Callback } from "../interface";
 
-/**
- * Creates a mapping of routes for all the incomming request.
- * Provides a neat way of defining routes using an array of route object on the constructor.
- * Add routes dynamically with a route object.
- * Enable to handle multiple types of http methods.
- */
+interface Router {
+  get(path: string, fn: Middleware): Router;
+  post(path: string, fn: Middleware): Router;
+  put(path: string, fn: Middleware): Router;
+  patch(path: string, fn: Middleware): Router;
+  delete(path: string, fn: Middleware): Router;
+  options(path: string, fn: Middleware): Router;
+}
+
 class Router {
-  private routes: Routes = {
-    GET: {},
-    POST: {},
-    PUT: {},
-    PATCH: {},
-    DELETE: {},
-    OPTIONS: {},
-  };
+  url: Url;
+  request: RequestHelper;
 
-  /**
-   * Add routes from a route object array. Accepts multiple different routes with different method types.
-   *
-   * @param routes An array of route object describing a path and method function. `OPTIONAL`
-   * @example
-   *
-   * const router = new Router();
-   *
-   * // or
-   *
-   * const router = new Router([
-   *  {
-   *    path: "<route-name>",
-   *    GET: (req, res) => { }
-   *  },
-   *  {
-   *    path: "<route-name>",
-   *    POST: (req, res) => { }
-   *  },
-   *  ...
-   * ]);
-   */
-  constructor(routes?: Route[]) {}
-
-  /**
-   * Add a route to be mapped on the routes object.
-   *
-   * @param route An object describing a path and method function
-   * @example
-   * add({
-   *   path: "route",
-   *   GET: (req, res) => {
-   *      // handle request here
-   *   },
-   * })
-   */
-  add(route: Route): void {
-    // Get the method type of the route
-    const method = Object.keys(route)[1] as HttpMethods;
-
-    // Get the function associated with the method
-    const value = route[method] as Callback;
-
-    // Add the function and the path as the key on the routes object
-    this.routes[method][route.path] = value;
+  constructor(private routes: Routes = []) {
+    this.url = new Url();
+    this.request = new RequestHelper();
   }
 
-  /**
-   * Initialize the routes and event listeners.
-   *
-   * @return Anonymous function.
-   */
-  initialize(): (request: http.IncomingMessage, response: http.ServerResponse) => void {
-    return (request: http.IncomingMessage, response: http.ServerResponse) => {
-      // Define default send function
-      (response as any)["send"] = this.requestSender(response);
+  get init() {
+    return (req: http.IncomingMessage, res: http.ServerResponse) => {
+      const query = req.url ? this.url.queryString(req) : "";
+      const { index, found, params, key } = this.url.find(this.routes, req.url?.replace(query, "") ?? "");
 
-      let body = "";
-
-      // Concat chunks of data
-      const chunk = (chunks: any) => {
-        body += chunks;
-      };
-
-      // Get data from the REQUEST
-      request.on("data", chunk);
-
-      // Listen to end event
-      request.on("end", this.requestEndListener(request, response, body));
-    };
-  }
-
-  /**
-   * Builds a request handler object.
-   *
-   * @param parsedURL Parsed url string from `request.url`.
-   * @param request An object that describe the request.
-   * @returns Request Handler object
-   */
-  private requestHandlerBuilder(request: http.IncomingMessage, body: string): RequestHandler {
-    // Parse request URL
-    const parsedURL = url.parse(request.url || "", true);
-
-    // Get the value of URL
-    const pathName = parsedURL.pathname || "";
-
-    // Sanitize URL string '/request/url/' becomes 'request/url'
-    const path = pathName.replace(/^\/+|\/+$/g, "");
-
-    // Get the value of query
-    const query = parsedURL.query as UrlObject;
-
-    // Get the value of headers from request
-    const headers = request.headers as HttpHeaders;
-
-    // Get the value of method from request
-    const method = request.method as HttpMethods;
-
-    return { path, query, headers, method, body };
-  }
-
-  /**
-   * Creates an anonymous function that accepts `value` as parameters and used as `default sender` method.
-   *
-   * @param response Response object from NodeJS.
-   * @return Anonymous function for default sending of response.
-   */
-  private requestSender(response: http.ServerResponse): (value: string | number | object) => void {
-    return (value: string | number | object) => {
-      // SET Headers
-      response.setHeader("Content-type", "application/json");
-      response.setHeader("Access-Control-Allow-Origin", "*");
-
-      // SET Status Code to HTTP 200/OK
-      response.writeHead(200);
-
-      // Send data to the client
-      response.end(value);
-    };
-  }
-
-  /**
-   * A function that listen to an event when request is ended and execute an anonymous function to send a response to the client.
-   *
-   * @param request An object that describe the request.
-   * @param response Server Response object.
-   * @param body String of data chunks from the request data listener.
-   * @return Anonymous function which returns void.
-   */
-  private requestEndListener(request: http.IncomingMessage, response: http.ServerResponse, body: string): () => void {
-    // Define a Request Handler object
-    const req: RequestHandler = this.requestHandlerBuilder(request, body);
-
-    return () => {
-      try {
-        // Get routes with same path and method
-        this.routes[req.method]![req.path](req, response as ResponseHandler);
-      } catch (error) {
-        // Set status code to 500/Internal server error
-        response.writeHead(500);
-
-        // End request
-        response.end();
+      if (!found) {
+        throw new Error("Request path doesn't exist!");
       }
+
+      bodyParser(req, (body: any) => {
+        const reqProps = this.request.props(params, body, query);
+        const context = this.createContextObject(this.request.obj(req, reqProps), response(res));
+        const method = req.method?.toLocaleLowerCase() as RequestMethod;
+
+        this.requestHandler(index, method, key, context);
+      });
     };
+  }
+
+  add(method: RequestMethod, url: string, fn: Middleware): Router {
+    const requestPath = this.removePrefix(url ?? "");
+    const { index, found } = this.url.find(this.routes, requestPath);
+
+    if (index >= 0 && found) {
+      // Add method to existing object in routes array
+      this.routes[index][url] = { [method]: fn };
+      return this;
+    }
+
+    // Add method new object in routes array
+    this.routes.push({ [url]: { [method]: fn } });
+    return this;
+  }
+
+  private requestHandler(index: number, method: RequestMethod, url: string, context: ContextObject): void {
+    const routeMethodKeys = Object.keys(this.routes[index][url]);
+    const hasMethod = routeMethodKeys.includes(method);
+
+    if (!hasMethod) {
+      throw new Error(`Request ${method.toLocaleUpperCase()} method on path '/${url}' not found!`);
+    }
+
+    this.routes[index][url][method](context);
+  }
+
+  private removePrefix(url: string) {
+    return url.substring(1);
+  }
+
+  private createContextObject(req: RequestObject, res: ResponseObject) {
+    return { req, res, params: req.params, body: req.body, query: req.query };
   }
 }
 
-export { Router };
+// Add all the HTTP Methods as a function to Router
+methods.forEach((method: RequestMethod) => {
+  Router.prototype[method] = function (url: string, fn: Middleware) {
+    return this.add(method, url, fn);
+  };
+});
+
+export = Router;
