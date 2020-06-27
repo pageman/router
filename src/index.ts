@@ -22,13 +22,14 @@ class Router {
 
   get init() {
     return (req: http.IncomingMessage, res: http.ServerResponse) => {
-      const { index, found, params, key } = this.url.find(this.routes, req.url ?? "");
+      const query = req.url ? this.url.queryString(req) : "";
+      const { index, found, params, key } = this.url.find(this.routes, req.url?.replace(query, "") ?? "");
 
       if (!found) {
         throw new Error("Request path doesn't exist!");
       }
 
-      const reqProps = this.createRequestObjectProps(params, {}, {});
+      const reqProps = this.createRequestObjectProps(params, {}, query);
       const context = this.createContextObject(this.createRequestObject(req, reqProps), this.createResponseObject(res));
       const method = req.method?.toLocaleLowerCase() as RequestMethod;
 
