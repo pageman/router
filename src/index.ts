@@ -1,5 +1,5 @@
 import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject } from "./interfaces";
-import ResponseFunctions from "./response";
+import response from "./response";
 import RequestHelper from "./request";
 import methods from "./methods";
 import Url from "./url";
@@ -33,7 +33,7 @@ class Router {
       }
 
       const reqProps = this.request.props(params, {}, query);
-      const context = this.createContextObject(this.request.obj(req, reqProps), this.createResponseObject(res));
+      const context = this.createContextObject(this.request.obj(req, reqProps), response(res));
       const method = req.method?.toLocaleLowerCase() as RequestMethod;
 
       this.requestHandler(index, method, key, context);
@@ -64,10 +64,6 @@ class Router {
     }
 
     this.routes[index][url][method](context);
-  }
-
-  private createResponseObject(res: http.ServerResponse): ResponseObject {
-    return Object.assign(res, ResponseFunctions(res));
   }
 
   private removePrefix(url: string) {

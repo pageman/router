@@ -1,7 +1,7 @@
 import http from "http";
-import { ResponseObjectProps } from "./interfaces";
+import { ResponseObjectProps, ResponseObject } from "./interfaces";
 
-export = function ResponseFunctions(res: http.ServerResponse): ResponseObjectProps {
+function ResponseFunctions(res: http.ServerResponse): ResponseObjectProps {
   const endResponse = (value: any) => {
     res.write(value);
     res.end();
@@ -23,4 +23,8 @@ export = function ResponseFunctions(res: http.ServerResponse): ResponseObjectPro
       endResponse(html);
     },
   };
+}
+
+export = function createResponseObject(res: http.ServerResponse): ResponseObject {
+  return Object.assign(res, ResponseFunctions(res));
 };
