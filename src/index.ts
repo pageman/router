@@ -1,6 +1,7 @@
 import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject, RequestObjectProps } from "./interfaces";
 import ResponseFunctions from "./response_functions";
 import methods from "./methods";
+import Url from "./url";
 import http from "http";
 
 interface Router {
@@ -13,11 +14,15 @@ interface Router {
 }
 
 class Router {
-  constructor(private routes: Routes = []) {}
+  url: Url;
+
+  constructor(private routes: Routes = []) {
+    this.url = new Url();
+  }
 
   get init() {
     return (req: http.IncomingMessage, res: http.ServerResponse) => {
-      const { index, found, params, key } = this.findUrl(req.url ?? "");
+      const { index, found, params, key } = this.url.find(this.routes, req.url ?? "");
 
       if (!found) {
         throw new Error("Request path doesn't exist!");
@@ -32,7 +37,7 @@ class Router {
 
   add(method: RequestMethod, url: string, fn: Middleware): Router {
     const requestPath = this.removePrefix(url ?? "");
-    const { index, found } = this.findUrl(requestPath);
+    const { index, found } = this.url.find(this.routes, requestPath);
 
     if (index >= 0 && found) {
       // Add method to existing object in routes array
@@ -42,42 +47,11 @@ class Router {
 
     // Add method new object in routes array
     this.routes.push({ [url]: { [method]: fn } });
-
     return this;
   }
 
   private requestHandler(index: number, method: RequestMethod, url: string, context: ContextObject): void {
     this.routes[index][url][method](context);
-  }
-
-  private findUrl(url: string = ""): { index: number; found: boolean; params: RegExpExecArray | null; key: string } {
-    let index: number = -1;
-    let key = url;
-    let params = null;
-
-    // Find the key for the route if existed
-    const found = this.routes.some((route: any, idx: number): boolean => {
-      const routeKey = Object.keys(route)[0];
-
-      // Generate regex based on the current route
-      const regex = this.urlToRegex(routeKey);
-
-      // Check if route has request params
-      const hasParams = regex.test(url);
-
-      if (hasParams) {
-        // Set key to current route key
-        key = routeKey;
-
-        // Retrieve params if there are any
-        params = regex.exec(url);
-      }
-
-      index = idx;
-      return Boolean(route[url]) || hasParams;
-    });
-
-    return { index, found, params, key };
   }
 
   private createResponseObject(res: http.ServerResponse): ResponseObject {
@@ -90,18 +64,6 @@ class Router {
 
   private createRequestObjectProps(params: RegExpExecArray | null, body: any, query: any): RequestObjectProps {
     return { params: params?.groups, body, query };
-  }
-
-  private urlToRegex(url: string) {
-    const base = (val: string) => new RegExp(`^${val}$`);
-    const notParam = (val: string) => `(?:\\/(${val}))`;
-    const isParam = (val: string) => `(?:\\/(?<${val}>[\\w\\-]+?))`;
-    const regex = url
-      .split("/")
-      .map((val) => (val.includes(":") ? isParam(val.substring(1)) : notParam(val)))
-      .join("");
-
-    return base(regex);
   }
 
   private removePrefix(url: string) {
