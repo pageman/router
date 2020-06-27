@@ -1,5 +1,5 @@
 import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject } from "./interfaces";
-import ResponseFunctions from "./response_functions";
+import ResponseFunctions from "./response";
 import RequestHelper from "./request";
 import methods from "./methods";
 import Url from "./url";
