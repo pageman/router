@@ -17,15 +17,16 @@ class Router {
 
   get init() {
     return (req: http.IncomingMessage, res: http.ServerResponse) => {
-      const url = this.removePrefix(req.url ?? "");
-      const { index, found } = this.findUrl(url);
+      const { index, found, params, key } = this.findUrl(req.url ?? "");
+
+      
 
       if (!found) {
         throw new Error("Request path doesn't exist!");
       }
 
-      const context = this.createContextObject(req, res);
-      this.requestHandler(index, req.method?.toLocaleLowerCase() as RequestMethod, url, context);
+      const context = this.createContextObject(req, this.createResponseObject(res));
+      this.requestHandler(index, req.method?.toLocaleLowerCase() as RequestMethod, key, context);
     };
   }
 
@@ -49,40 +50,62 @@ class Router {
     this.routes[index][url][method](context);
   }
 
-  private findUrl(url: string = ""): { index: number; found: boolean; params: any } {
+  private findUrl(url: string = ""): { index: number; found: boolean; params: RegExpExecArray | null; key: string } {
     let index: number = -1;
-    let params = {};
+    let key = url;
+    let params = null;
 
     // Find the key for the route if existed
-    const found = this.routes.some((item: any, idx: number): boolean => {
-      // Retrieve params if there are any
-      params = this.checkUrlForParams(idx);
+    const found = this.routes.some((route: any, idx: number): boolean => {
+      const routeKey = Object.keys(route)[0];
+
+      // Generate regex based on the current route
+      const regex = this.urlToRegex(routeKey);
+
+      // Check if route has request params
+      const hasParams = regex.test(url);
+
+      if (hasParams) {
+        // Set key to current route key
+        key = routeKey;
+
+        // Retrieve params if there are any
+        params = regex.exec(url);
+      }
+
       index = idx;
-      return Boolean(item[url]);
+      return Boolean(route[url]) || hasParams;
     });
 
-    return { index, found, params };
+    return { index, found, params, key };
   }
 
   private createResponseObject(res: http.ServerResponse): ResponseObject {
-    return Object.assign(res, new ResponseFunctions(res));
+    return Object.assign(res, ResponseFunctions(res));
   }
 
-  private checkUrlForParams(index: number) {
-    Object.keys(this.routes[index]);
-    return {};
+  private urlToRegex(url: string) {
+    const base = (val: string) => new RegExp(`^${val}$`);
+    const notParam = (val: string) => `(?:\\/(${val}))`;
+    const isParam = (val: string) => `(?:\\/(?<${val}>[\\w\\-]+?))`;
+    const regex = url
+      .split("/")
+      .map((val) => (val.includes(":") ? isParam(val.substring(1)) : notParam(val)))
+      .join("");
+
+    return base(regex);
   }
 
   private removePrefix(url: string) {
     return url.substring(1);
   }
 
-  private createContextObject(req: http.IncomingMessage, res: http.ServerResponse) {
+  private createContextObject(req: http.IncomingMessage, res: ResponseObject) {
     return {
       req,
-      res: this.createResponseObject(res),
-      body: {},
+      res,
       params: {},
+      body: {},
       query: {},
     };
   }
