@@ -1,4 +1,4 @@
-import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject } from "./interfaces";
+import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject, RequestObjectProps } from "./interfaces";
 import ResponseFunctions from "./response_functions";
 import methods from "./methods";
 import http from "http";
@@ -19,13 +19,11 @@ class Router {
     return (req: http.IncomingMessage, res: http.ServerResponse) => {
       const { index, found, params, key } = this.findUrl(req.url ?? "");
 
-      
-
       if (!found) {
         throw new Error("Request path doesn't exist!");
       }
 
-      const context = this.createContextObject(req, this.createResponseObject(res));
+      const context = this.createContextObject(this.createRequestObject(req, { params: params?.groups, body: {}, query: {} }), this.createResponseObject(res));
       this.requestHandler(index, req.method?.toLocaleLowerCase() as RequestMethod, key, context);
     };
   }
@@ -82,6 +80,10 @@ class Router {
 
   private createResponseObject(res: http.ServerResponse): ResponseObject {
     return Object.assign(res, ResponseFunctions(res));
+  }
+
+  private createRequestObject(req: http.IncomingMessage, props: RequestObjectProps): RequestObject {
+    return Object.assign(req, props);
   }
 
   private urlToRegex(url: string) {
