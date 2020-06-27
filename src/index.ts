@@ -30,8 +30,9 @@ class Router {
 
       const reqProps = this.createRequestObjectProps(params, {}, {});
       const context = this.createContextObject(this.createRequestObject(req, reqProps), this.createResponseObject(res));
+      const method = req.method?.toLocaleLowerCase() as RequestMethod;
 
-      this.requestHandler(index, req.method?.toLocaleLowerCase() as RequestMethod, key, context);
+      this.requestHandler(index, method, key, context);
     };
   }
 
