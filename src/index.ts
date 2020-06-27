@@ -33,7 +33,7 @@ class Router {
       }
 
       const reqProps = this.request.props(params, {}, query);
-      const context = this.createContextObject(this.request.createRequestObject(req, reqProps), this.createResponseObject(res));
+      const context = this.createContextObject(this.request.obj(req, reqProps), this.createResponseObject(res));
       const method = req.method?.toLocaleLowerCase() as RequestMethod;
 
       this.requestHandler(index, method, key, context);

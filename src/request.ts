@@ -2,7 +2,7 @@ import http from "http";
 import { RequestObjectProps, RequestObject } from "./interfaces";
 
 export = class RequestHelper {
-  createRequestObject(req: http.IncomingMessage, props: RequestObjectProps): RequestObject {
+  obj(req: http.IncomingMessage, props: RequestObjectProps): RequestObject {
     return Object.assign(req, props);
   }
 
