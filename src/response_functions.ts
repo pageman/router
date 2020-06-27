@@ -1,7 +1,7 @@
 import http from "http";
-import { AdditionalResponseObjectFunctions } from "./interfaces";
+import { ResponseObjectProps } from "./interfaces";
 
-export = function ResponseFunctions(res: http.ServerResponse): AdditionalResponseObjectFunctions {
+export = function ResponseFunctions(res: http.ServerResponse): ResponseObjectProps {
   const endResponse = (value: any) => {
     res.write(value);
     res.end();

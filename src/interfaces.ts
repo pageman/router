@@ -8,13 +8,13 @@ export interface RequestObjectProps {
   query?: { [key: string]: string };
 }
 
-export interface AdditionalResponseObjectFunctions {
+export interface ResponseObjectProps {
   send(args: any): void;
   json(json: object): void;
   html(html: string): void;
 }
 
-export interface ResponseObject extends http.ServerResponse, AdditionalResponseObjectFunctions {}
+export interface ResponseObject extends http.ServerResponse, ResponseObjectProps {}
 export interface RequestObject extends http.IncomingMessage, RequestObjectProps {}
 
 export interface ContextObject {
