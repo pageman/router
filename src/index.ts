@@ -23,7 +23,9 @@ class Router {
         throw new Error("Request path doesn't exist!");
       }
 
-      const context = this.createContextObject(this.createRequestObject(req, { params: params?.groups, body: {}, query: {} }), this.createResponseObject(res));
+      const reqProps = this.createRequestObjectProps(params, {}, {});
+      const context = this.createContextObject(this.createRequestObject(req, reqProps), this.createResponseObject(res));
+
       this.requestHandler(index, req.method?.toLocaleLowerCase() as RequestMethod, key, context);
     };
   }
@@ -84,6 +86,10 @@ class Router {
 
   private createRequestObject(req: http.IncomingMessage, props: RequestObjectProps): RequestObject {
     return Object.assign(req, props);
+  }
+
+  private createRequestObjectProps(params: RegExpExecArray | null, body: any, query: any): RequestObjectProps {
+    return { params: params?.groups, body, query };
   }
 
   private urlToRegex(url: string) {
