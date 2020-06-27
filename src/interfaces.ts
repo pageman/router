@@ -1,7 +1,8 @@
 import http from "http";
 
 // INTERFACES
-export interface RequestObject extends http.IncomingMessage {
+
+export interface RequestObjectProps {
   body?: any;
   params?: { [key: string]: string };
   query?: { [key: string]: string };
@@ -14,6 +15,7 @@ export interface AdditionalResponseObjectFunctions {
 }
 
 export interface ResponseObject extends http.ServerResponse, AdditionalResponseObjectFunctions {}
+export interface RequestObject extends http.IncomingMessage, RequestObjectProps {}
 
 export interface ContextObject {
   req: RequestObject;
