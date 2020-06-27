@@ -1,4 +1,6 @@
 import { Routes } from "./interfaces";
+import { URL } from "url";
+import http from "http";
 
 export = class Url {
   find(routes: Routes, url: string = ""): { index: number; found: boolean; params: RegExpExecArray | null; key: string } {
@@ -29,6 +31,11 @@ export = class Url {
     });
 
     return { index, found, params, key };
+  }
+
+  queryString(req: http.IncomingMessage) {
+    const url = new URL(req.url ?? "", `http://${req.headers.host}`);
+    return url.search;
   }
 
   private toRegex(url: string) {
