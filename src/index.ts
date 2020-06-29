@@ -122,16 +122,9 @@ class Router {
         throw new Error("Request path doesn't exist!");
       }
 
-      const executeRoutes: Router.MayaJSMiddleware = ({ req, res }: Router.MiddlewareParams) =>
-        bodyParser(req, (body: any) => {
-          const reqProps = this.request.props(params, body, query);
-          const context = this.createContextObject(this.request.obj(req, reqProps), response(res));
-          const method = req.method?.toLocaleLowerCase() as Router.RequestMethod;
+      this.middlewares.push(this.finalize({ index, query, params, key }));
 
-          this.requestHandler(index, method, key, context);
-        });
-
-      invoker(req, res, [...this.middlewares, executeRoutes]);
+      invoker(req, res, [bodyParser, ...this.middlewares]);
     };
   }
 
@@ -239,6 +232,15 @@ class Router {
    */
   options(path: string, fn: Router.CallbackFunction): Router {
     return this.add("options", path, fn);
+  }
+
+  private finalize({ index, query, params, key }: { index: number; query: string; params: RegExpExecArray | null; key: string }) {
+    return ({ req, res, error: body }: Router.MiddlewareParams) => {
+      const reqProps = this.request.props(params, body, query);
+      const context = this.createContextObject(this.request.obj(req, reqProps), response(res));
+      const method = req.method?.toLocaleLowerCase() as Router.RequestMethod;
+      this.requestHandler(index, method, key, context);
+    };
   }
 
   private requestHandler(index: number, method: Router.RequestMethod, url: string, context: Router.MayaJSContext): void {
