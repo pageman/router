@@ -54,15 +54,20 @@ export type NextFunction = (args?: any) => void;
 export type RouteMethodFunction = (obj: MayaJSContext, next?: NextFunction) => void;
 
 /**
+ * A object params that handles request, response and error
+ */
+export type MiddlewareParams = { req: http.IncomingMessage; res: http.ServerResponse; error?: any };
+
+/**
  * A function that acts as middle man to any route or another middleware function.
  * This function will run before any route will be initialized and call the next middleware if there is any.
  */
-export type MayaJSMiddleware = (obj: MayaJSContext, next: NextFunction) => void;
+export type MayaJSMiddleware = (obj: MiddlewareParams, next: NextFunction) => void;
 
 /**
  * A representation of ExpressJS middleware function.
  */
-export type ExpressMiddleware = (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction) => void;
+export type ExpressMiddleware = (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction, error: any) => void;
 
 /**
  * A list of http method in lower case
