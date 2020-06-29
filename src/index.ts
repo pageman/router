@@ -1,7 +1,6 @@
 import response from "./response";
 import RequestHelper from "./request";
 import bodyParser from "./body_parser";
-import methods from "./methods";
 import invoker from "./middleware";
 import Url from "./url";
 import http from "http";
@@ -97,15 +96,6 @@ namespace Router {
   export type Routes = Route[];
 }
 
-interface Router {
-  get(path: string, fn: Router.CallbackFunction): Router;
-  post(path: string, fn: Router.CallbackFunction): Router;
-  put(path: string, fn: Router.CallbackFunction): Router;
-  patch(path: string, fn: Router.CallbackFunction): Router;
-  delete(path: string, fn: Router.CallbackFunction): Router;
-  options(path: string, fn: Router.CallbackFunction): Router;
-}
-
 class Router {
   private url: Url;
   private request: RequestHelper;
@@ -117,6 +107,12 @@ class Router {
     this.middlewares = [];
   }
 
+  /**
+   * Emit a function correspond with current incoming request after all the middlewares are
+   * finished executing.
+   *
+   * @return A function that can be consume by http.createServer
+   */
   get init() {
     return (req: http.IncomingMessage, res: http.ServerResponse) => {
       const query = req.url ? this.url.queryString(req) : "";
@@ -139,6 +135,14 @@ class Router {
     };
   }
 
+  /**
+   * Adds a route in the list
+   *
+   * @param method A type of http method in lower case
+   * @param url A url string
+   * @param fn A function that will be call when this route is executed
+   * @return Router instance
+   */
   add(method: Router.RequestMethod, url: string, fn: Router.CallbackFunction): Router {
     const requestPath = this.removePrefix(url ?? "");
     const { index, found } = this.url.find(this.routes, requestPath);
@@ -158,6 +162,7 @@ class Router {
    * Accepts a function as a middleware to be a executed when a request is coming.
    *
    * @param middleware A function that will be execute before the routes
+   * @return Router instance
    */
   use(middleware: Router.MayaJSMiddleware | Router.ExpressMiddleware | (Router.MayaJSMiddleware | Router.ExpressMiddleware)[]): this {
     if (Array.isArray(middleware)) {
@@ -168,6 +173,72 @@ class Router {
     this.middlewares.push(middleware);
 
     return this;
+  }
+
+  /**
+   * Handle GET request
+   *
+   * @param path Request path
+   * @param method A callback function
+   * @return Router instance
+   */
+  get(path: string, fn: Router.CallbackFunction): Router {
+    return this.add("get", path, fn);
+  }
+
+  /**
+   * Handle GET request
+   *
+   * @param path Request path
+   * @param method A callback function
+   * @return Router instance
+   */
+  post(path: string, fn: Router.CallbackFunction): Router {
+    return this.add("post", path, fn);
+  }
+
+  /**
+   * Handle PUT request
+   *
+   * @param path Request path
+   * @param method A callback function
+   * @return Router instance
+   */
+  put(path: string, fn: Router.CallbackFunction): Router {
+    return this.add("put", path, fn);
+  }
+
+  /**
+   * Handle PATCH request
+   *
+   * @param path Request path
+   * @param method A callback function
+   * @return Router instance
+   */
+  patch(path: string, fn: Router.CallbackFunction): Router {
+    return this.add("patch", path, fn);
+  }
+
+  /**
+   * Handle DELETE request
+   *
+   * @param path Request path
+   * @param method A callback function
+   * @return Router instance
+   */
+  delete(path: string, fn: Router.CallbackFunction): Router {
+    return this.add("delete", path, fn);
+  }
+
+  /**
+   * Handle OPTIONS request
+   *
+   * @param path Request path
+   * @param method A callback function
+   * @return Router instance
+   */
+  options(path: string, fn: Router.CallbackFunction): Router {
+    return this.add("options", path, fn);
   }
 
   private requestHandler(index: number, method: Router.RequestMethod, url: string, context: Router.MayaJSContext): void {
@@ -189,12 +260,5 @@ class Router {
     return { req, res, params: req.params, body: req.body, query: req.query };
   }
 }
-
-// Add all the HTTP Methods as a function to Router
-methods.forEach((method: Router.RequestMethod) => {
-  Router.prototype[method] = function (url: string, fn: Router.CallbackFunction) {
-    return this.add(method, url, fn);
-  };
-});
 
 export = Router;
