@@ -1,4 +1,4 @@
-import { Routes, RequestMethod, Middleware, ContextObject, ResponseObject, RequestObject } from "./interfaces";
+import { Routes, RequestMethod, RouteMethodFunction, ContextObject, ResponseObject, RequestObject } from "./interfaces";
 import response from "./response";
 import RequestHelper from "./request";
 import bodyParser from "./body_parser";
@@ -7,12 +7,12 @@ import Url from "./url";
 import http from "http";
 
 interface Router {
-  get(path: string, fn: Middleware): Router;
-  post(path: string, fn: Middleware): Router;
-  put(path: string, fn: Middleware): Router;
-  patch(path: string, fn: Middleware): Router;
-  delete(path: string, fn: Middleware): Router;
-  options(path: string, fn: Middleware): Router;
+  get(path: string, fn: RouteMethodFunction): Router;
+  post(path: string, fn: RouteMethodFunction): Router;
+  put(path: string, fn: RouteMethodFunction): Router;
+  patch(path: string, fn: RouteMethodFunction): Router;
+  delete(path: string, fn: RouteMethodFunction): Router;
+  options(path: string, fn: RouteMethodFunction): Router;
 }
 
 class Router {
@@ -43,7 +43,7 @@ class Router {
     };
   }
 
-  add(method: RequestMethod, url: string, fn: Middleware): Router {
+  add(method: RequestMethod, url: string, fn: RouteMethodFunction): Router {
     const requestPath = this.removePrefix(url ?? "");
     const { index, found } = this.url.find(this.routes, requestPath);
 
@@ -80,7 +80,7 @@ class Router {
 
 // Add all the HTTP Methods as a function to Router
 methods.forEach((method: RequestMethod) => {
-  Router.prototype[method] = function (url: string, fn: Middleware) {
+  Router.prototype[method] = function (url: string, fn: RouteMethodFunction) {
     return this.add(method, url, fn);
   };
 });

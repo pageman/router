@@ -48,8 +48,14 @@ export interface ContextObject {
 export type NextFunction = (args?: any) => void;
 
 /**
- * A middleware function that accepts a 'context' object that contains all the request inforamtion
- * and 'next' function that will execute the next middleware
+ * A function that accepts a 'context' object that contains all the request information
+ * and 'next' function that will execute the next middleware on the list
+ */
+export type RouteMethodFunction = (obj: ContextObject, next?: NextFunction) => void;
+
+/**
+ * A function that acts as middle man to any route or another middleware function.
+ * This function will run before any route will be initialized and call the next middleware if there is any.
  */
 export type Middleware = (obj: ContextObject, next?: NextFunction) => void;
 
@@ -61,7 +67,7 @@ export type RequestMethod = "get" | "post" | "put" | "patch" | "delete" | "optio
 /**
  * An object to represent a route method function
  */
-export type RequestMethodFunction = { [method: string]: Middleware };
+export type RequestMethodFunction = { [method: string]: RouteMethodFunction };
 
 /**
  * A MayaJS route object
