@@ -34,7 +34,7 @@ export interface RequestObject extends http.IncomingMessage, RequestObjectProps 
  * A MayaJS object containing a request and response object.
  * Also contains optional variables that are extracted in request and response object.
  */
-export interface ContextObject {
+export interface MayaJSContext {
   req: RequestObject;
   res: ResponseObject;
   body?: any;
@@ -51,13 +51,13 @@ export type NextFunction = (args?: any) => void;
  * A function that accepts a 'context' object that contains all the request information
  * and 'next' function that will execute the next middleware on the list
  */
-export type RouteMethodFunction = (obj: ContextObject, next?: NextFunction) => void;
+export type RouteMethodFunction = (obj: MayaJSContext, next?: NextFunction) => void;
 
 /**
  * A function that acts as middle man to any route or another middleware function.
  * This function will run before any route will be initialized and call the next middleware if there is any.
  */
-export type Middleware = (obj: ContextObject, next: NextFunction) => void;
+export type MayaJSMiddleware = (obj: MayaJSContext, next: NextFunction) => void;
 
 /**
  * A representation of ExpressJS middleware function.
