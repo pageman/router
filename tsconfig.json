@@ -15,5 +15,5 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "exclude": ["test"]
+  "exclude": ["test", "lib/**.d.ts"]
 }
