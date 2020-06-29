@@ -57,12 +57,12 @@ export type RouteMethodFunction = (obj: ContextObject, next?: NextFunction) => v
  * A function that acts as middle man to any route or another middleware function.
  * This function will run before any route will be initialized and call the next middleware if there is any.
  */
-export type Middleware = (obj: ContextObject, next?: NextFunction) => void;
+export type Middleware = (obj: ContextObject, next: NextFunction) => void;
 
 /**
  * A representation of ExpressJS middleware function.
  */
-export type ExpressMiddleware = (req: http.IncomingMessage, res: http.ServerResponse, next?: NextFunction) => void;
+export type ExpressMiddleware = (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction) => void;
 
 /**
  * A list of http method in lower case
