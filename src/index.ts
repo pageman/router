@@ -1,8 +1,19 @@
-import { Routes, RequestMethod, RouteMethodFunction, MayaJSContext, ResponseObject, RequestObject, MayaJSMiddleware, ExpressMiddleware } from "./interfaces";
+import {
+  Routes,
+  RequestMethod,
+  RouteMethodFunction,
+  MayaJSContext,
+  ResponseObject,
+  RequestObject,
+  MayaJSMiddleware,
+  ExpressMiddleware,
+  MiddlewareParams,
+} from "./interfaces";
 import response from "./response";
 import RequestHelper from "./request";
 import bodyParser from "./body_parser";
 import methods from "./methods";
+import invoker from "./middleware";
 import Url from "./url";
 import http from "http";
 
@@ -35,13 +46,16 @@ class Router {
         throw new Error("Request path doesn't exist!");
       }
 
-      bodyParser(req, (body: any) => {
-        const reqProps = this.request.props(params, body, query);
-        const context = this.createContextObject(this.request.obj(req, reqProps), response(res));
-        const method = req.method?.toLocaleLowerCase() as RequestMethod;
+      const executeRoutes: MayaJSMiddleware = ({ req, res }: MiddlewareParams) =>
+        bodyParser(req, (body: any) => {
+          const reqProps = this.request.props(params, body, query);
+          const context = this.createContextObject(this.request.obj(req, reqProps), response(res));
+          const method = req.method?.toLocaleLowerCase() as RequestMethod;
 
-        this.requestHandler(index, method, key, context);
-      });
+          this.requestHandler(index, method, key, context);
+        });
+
+      invoker(req, res, [...this.middlewares, executeRoutes]);
     };
   }
 
