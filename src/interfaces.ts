@@ -61,12 +61,12 @@ export type RequestMethod = "get" | "post" | "put" | "patch" | "delete" | "optio
 /**
  * An object to represent a route method function
  */
-export type RequestFunction = { [method: string]: Middleware };
+export type RequestMethodFunction = { [method: string]: Middleware };
 
 /**
  * A MayaJS route object
  */
-export type Route = { [url: string]: RequestFunction };
+export type Route = { [url: string]: RequestMethodFunction };
 
 /**
  * A list of MayaJS Route
