@@ -1,4 +1,4 @@
-import { Routes, RequestMethod, RouteMethodFunction, ContextObject, ResponseObject, RequestObject } from "./interfaces";
+import { Routes, RequestMethod, RouteMethodFunction, MayaJSContext, ResponseObject, RequestObject, MayaJSMiddleware, ExpressMiddleware } from "./interfaces";
 import response from "./response";
 import RequestHelper from "./request";
 import bodyParser from "./body_parser";
@@ -16,12 +16,14 @@ interface Router {
 }
 
 class Router {
-  url: Url;
-  request: RequestHelper;
+  private url: Url;
+  private request: RequestHelper;
+  private middlewares: (MayaJSMiddleware | ExpressMiddleware)[];
 
   constructor(private routes: Routes = []) {
     this.url = new Url();
     this.request = new RequestHelper();
+    this.middlewares = [];
   }
 
   get init() {
@@ -58,7 +60,23 @@ class Router {
     return this;
   }
 
-  private requestHandler(index: number, method: RequestMethod, url: string, context: ContextObject): void {
+  /**
+   * Accepts a function as a middleware to be a executed when a request is coming.
+   *
+   * @param middleware A function that will be execute before the routes
+   */
+  use(middleware: MayaJSMiddleware | ExpressMiddleware | (MayaJSMiddleware | ExpressMiddleware)[]): this {
+    if (Array.isArray(middleware)) {
+      this.middlewares.push(...middleware);
+      return this;
+    }
+
+    this.middlewares.push(middleware);
+
+    return this;
+  }
+
+  private requestHandler(index: number, method: RequestMethod, url: string, context: MayaJSContext): void {
     const routeMethodKeys = Object.keys(this.routes[index][url]);
     const hasMethod = routeMethodKeys.includes(method);
 
