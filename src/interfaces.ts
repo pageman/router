@@ -60,6 +60,11 @@ export type RouteMethodFunction = (obj: ContextObject, next?: NextFunction) => v
 export type Middleware = (obj: ContextObject, next?: NextFunction) => void;
 
 /**
+ * A representation of ExpressJS middleware function.
+ */
+export type ExpressMiddleware = (req: http.IncomingMessage, res: http.ServerResponse, next?: NextFunction) => void;
+
+/**
  * A list of http method in lower case
  */
 export type RequestMethod = "get" | "post" | "put" | "patch" | "delete" | "options";
