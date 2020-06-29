@@ -1,5 +1,5 @@
+import { ResponseObjectProps, ResponseObject } from ".";
 import http from "http";
-import { ResponseObjectProps, ResponseObject } from "./interfaces";
 
 function ResponseFunctions(res: http.ServerResponse): ResponseObjectProps {
   const endResponse = (value: any) => {

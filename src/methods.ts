@@ -1,5 +1,5 @@
+import { RequestMethod } from ".";
 import http from "http";
-import { RequestMethod } from "./interfaces";
 
 /**
  *  Generic methods from Node.js 0.10

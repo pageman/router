@@ -1,4 +1,4 @@
-import { MayaJSMiddleware, ExpressMiddleware } from "./interfaces";
+import { MayaJSMiddleware, ExpressMiddleware } from ".";
 import http from "http";
 
 /**
