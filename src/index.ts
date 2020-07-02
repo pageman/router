@@ -4,6 +4,7 @@ import bodyParser from "./body_parser";
 import invoker from "./middleware";
 import Url from "./url";
 import http from "http";
+import cors from "./cors";
 
 namespace Router {
   /**
@@ -126,10 +127,11 @@ class Router {
    *
    * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
-  constructor(private routes: Router.Routes = []) {
+  constructor(options?: { cors?: Router.MayaJSMiddleware | Router.ExpressMiddleware }, private routes: Router.Routes = []) {
     this.url = new Url();
     this.request = new RequestHelper();
     this.middlewares = [];
+    this.middlewares.push(options && options.cors ? options.cors : cors());
   }
 
   /**
