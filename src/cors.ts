@@ -1,6 +1,10 @@
 import http from "http";
 import { NextFunction, ExpressMiddleware, CorsOptions, HttpMethods } from ".";
 
+function setCredentials() {
+  return { "Access-Control-Allow-Credentials": "true" };
+}
+
 function setMethods(methods: HttpMethods[]) {
   const value = Array.isArray(methods) ? methods.join(",") : methods;
   return { "Access-Control-Allow-Methods": value };
@@ -30,7 +34,7 @@ function setHeaders(res: http.ServerResponse, headers: { [key: string]: string }
 
 export = function (options: CorsOptions = {}): ExpressMiddleware {
   const headers: { [key: string]: string }[] = [];
-  const { origin = "*", methods = ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"] } = options;
+  const { origin = "*", methods = ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"], credentials = false } = options;
 
   return (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction, _error: any) => {
     const method = req.method && req.method.toUpperCase && req.method.toUpperCase();
@@ -43,10 +47,14 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
       headers.push(setMethods(methods));
     }
 
+    if (credentials) {
+      headers.push(setCredentials());
+    }
+
     setHeaders(res, headers);
 
     if (method === "OPTIONS") {
-      // PRE_FLIGHT MODE
+      // PRE-FLIGHT MODE
       res.statusCode = 204;
       res.setHeader("Content-Length", "0");
       res.end();
