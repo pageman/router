@@ -50,6 +50,18 @@ namespace Router {
   }
 
   /**
+   * An Object represents all CORS options
+   */
+  export interface CorsOptions {
+    origin?: string;
+    methods?: HttpMethods[];
+    allowedHeaders?: string;
+    exposedHeaders?: string;
+    credentials?: string;
+    maxAge?: number;
+  }
+
+  /**
    * A function invoking the next middleware
    */
   export type NextFunction = (args?: any) => void;
@@ -77,9 +89,14 @@ namespace Router {
   export type ExpressMiddleware = (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction, error: any) => void;
 
   /**
-   * A list of http method in lower case
+   * A list of http methods in lower case
    */
-  export type RequestMethod = "get" | "post" | "put" | "patch" | "delete" | "options";
+  export type RequestMethod = "get" | "head" | "post" | "put" | "patch" | "delete" | "options";
+
+  /**
+   * A list of http methods in upper case
+   */
+  export type HttpMethods = "GET" | "HEAD" | "PUT" | "PATCH" | "POST" | "DELETE" | "OPTIONS";
 
   /**
    * An object to represent a route method function
@@ -127,11 +144,16 @@ class Router {
    *
    * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
-  constructor(options?: { cors?: Router.MayaJSMiddleware | Router.ExpressMiddleware }, private routes: Router.Routes = []) {
+  constructor(options?: { cors?: Router.MayaJSMiddleware | Router.ExpressMiddleware | Router.CorsOptions }, private routes: Router.Routes = []) {
     this.url = new Url();
     this.request = new RequestHelper();
     this.middlewares = [];
-    this.middlewares.push(options && options.cors ? options.cors : cors());
+
+    if (typeof options?.cors === "object") {
+      this.middlewares.push(cors(options?.cors as Router.CorsOptions));
+    } else {
+      this.middlewares.push(options && options.cors ? (options.cors as Router.MayaJSMiddleware) : cors());
+    }
   }
 
   /**
