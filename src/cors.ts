@@ -10,16 +10,30 @@ interface CorsOptions {
   maxAge?: number;
 }
 
-export = function (options: CorsOptions = {}): ExpressMiddleware {
-  const isString = (value: any) => typeof value === "string" || value instanceof String;
+function setOrigin(requestOrigin: string | string[] | undefined, origin: string): { [key: string]: string } {
+  let value = origin;
+  let vary = {};
 
-  const { origin = "*" } = options;
-
-  if (isString(origin)) {
-    throw new TypeError("Options Origin is not a string!");
+  if (origin !== "*") {
+    vary = { Vary: "Origin" };
   }
 
+  if (requestOrigin === origin) {
+    value = requestOrigin;
+  }
+
+  return { "Access-Control-Allow-Origin": value, ...vary };
+}
+
+export = function (options: CorsOptions = {}): ExpressMiddleware {
+  const headers: { [key: string]: string }[] = [];
+  const { origin = "*" } = options;
+
   return (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction, error: any) => {
+    if (origin) {
+      headers.push(setOrigin(req.headers.origin, origin));
+    }
+
     next();
   };
 };
