@@ -1,6 +1,11 @@
 import http from "http";
 import { NextFunction, ExpressMiddleware, CorsOptions, HttpMethods } from ".";
 
+function setExposedHeaders(headers: string[]) {
+  const value = Array.isArray(headers) ? headers.join(",") : headers;
+  return { "Access-Control-Expose-Headers": value };
+}
+
 function setCredentials() {
   return { "Access-Control-Allow-Credentials": "true" };
 }
@@ -34,7 +39,7 @@ function setHeaders(res: http.ServerResponse, headers: { [key: string]: string }
 
 export = function (options: CorsOptions = {}): ExpressMiddleware {
   const headers: { [key: string]: string }[] = [];
-  const { origin = "*", methods = ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"], credentials = false } = options;
+  const { origin = "*", methods = ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"], credentials = false, exposedHeaders = [] } = options;
 
   return (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction, _error: any) => {
     const method = req.method && req.method.toUpperCase && req.method.toUpperCase();
@@ -43,12 +48,16 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
       headers.push(setOrigin(req.headers.origin, origin));
     }
 
-    if (methods?.length) {
+    if (methods.length) {
       headers.push(setMethods(methods));
     }
 
     if (credentials) {
       headers.push(setCredentials());
+    }
+
+    if (exposedHeaders.length) {
+      headers.push(setExposedHeaders(exposedHeaders));
     }
 
     setHeaders(res, headers);
@@ -58,6 +67,7 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
       res.statusCode = 204;
       res.setHeader("Content-Length", "0");
       res.end();
+      return;
     }
 
     next();
