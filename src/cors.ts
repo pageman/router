@@ -48,10 +48,6 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
       headers.push(setOrigin(req.headers.origin, origin));
     }
 
-    if (methods.length) {
-      headers.push(setMethods(methods));
-    }
-
     if (credentials) {
       headers.push(setCredentials());
     }
@@ -60,16 +56,23 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
       headers.push(setExposedHeaders(exposedHeaders));
     }
 
-    setHeaders(res, headers);
-
-    if (method === "OPTIONS") {
-      // PRE-FLIGHT MODE
-      res.statusCode = 204;
-      res.setHeader("Content-Length", "0");
-      res.end();
-      return;
+    // PROCEED TO ROUTES
+    if (method !== "OPTIONS") {
+      setHeaders(res, headers);
+      return next();
     }
 
-    next();
+    // PRE-FLIGHT MODE
+
+    if (methods.length) {
+      headers.push(setMethods(methods));
+    }
+
+    setHeaders(res, headers);
+
+    res.statusCode = 204;
+    res.setHeader("Content-Length", "0");
+    res.end();
+    return;
   };
 };
