@@ -21,11 +21,18 @@ function setOrigin(requestOrigin: string | string[] | undefined, origin: string)
   return { "Access-Control-Allow-Origin": value, ...vary };
 }
 
+function setHeaders(res: http.ServerResponse, headers: { [key: string]: string }[]) {
+  headers.map((value: any) => {
+    const key = Object.keys(value)[0];
+    res.setHeader(key, value[key]);
+  });
+}
+
 export = function (options: CorsOptions = {}): ExpressMiddleware {
   const headers: { [key: string]: string }[] = [];
-  const { origin = "*", methods } = options;
+  const { origin = "*", methods = ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"] } = options;
 
-  return (req: http.IncomingMessage, _res: http.ServerResponse, next: NextFunction, _error: any) => {
+  return (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction, _error: any) => {
     if (origin) {
       headers.push(setOrigin(req.headers.origin, origin));
     }
@@ -33,6 +40,8 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
     if (methods?.length) {
       headers.push(setMethods(methods));
     }
+
+    setHeaders(res, headers);
 
     next();
   };
