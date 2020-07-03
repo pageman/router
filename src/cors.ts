@@ -33,6 +33,8 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
   const { origin = "*", methods = ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"] } = options;
 
   return (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction, _error: any) => {
+    const method = req.method && req.method.toUpperCase && req.method.toUpperCase();
+
     if (origin) {
       headers.push(setOrigin(req.headers.origin, origin));
     }
@@ -42,6 +44,13 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
     }
 
     setHeaders(res, headers);
+
+    if (method === "OPTIONS") {
+      // PRE_FLIGHT MODE
+      res.statusCode = 204;
+      res.setHeader("Content-Length", "0");
+      res.end();
+    }
 
     next();
   };
