@@ -1,13 +1,9 @@
 import http from "http";
-import { NextFunction, ExpressMiddleware } from ".";
+import { NextFunction, ExpressMiddleware, CorsOptions, HttpMethods } from ".";
 
-interface CorsOptions {
-  origin?: string;
-  methods?: "GET" | "HEAD" | "PUT" | "PATCH" | "POST" | "DELETE";
-  allowedHeaders?: string;
-  exposedHeaders?: string;
-  credentials?: string;
-  maxAge?: number;
+function setMethods(methods: HttpMethods[]) {
+  const value = Array.isArray(methods) ? methods.join(",") : methods;
+  return { "Access-Control-Allow-Methods": value };
 }
 
 function setOrigin(requestOrigin: string | string[] | undefined, origin: string): { [key: string]: string } {
@@ -27,11 +23,15 @@ function setOrigin(requestOrigin: string | string[] | undefined, origin: string)
 
 export = function (options: CorsOptions = {}): ExpressMiddleware {
   const headers: { [key: string]: string }[] = [];
-  const { origin = "*" } = options;
+  const { origin = "*", methods } = options;
 
-  return (req: http.IncomingMessage, res: http.ServerResponse, next: NextFunction, error: any) => {
+  return (req: http.IncomingMessage, _res: http.ServerResponse, next: NextFunction, _error: any) => {
     if (origin) {
       headers.push(setOrigin(req.headers.origin, origin));
+    }
+
+    if (methods?.length) {
+      headers.push(setMethods(methods));
     }
 
     next();
