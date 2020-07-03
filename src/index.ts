@@ -56,7 +56,7 @@ namespace Router {
     origin?: string;
     methods?: HttpMethods[];
     allowedHeaders?: string;
-    exposedHeaders?: string;
+    exposedHeaders?: string[];
     credentials?: boolean;
     maxAge?: number;
   }
