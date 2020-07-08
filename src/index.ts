@@ -55,7 +55,7 @@ namespace Router {
   export interface CorsOptions {
     origin?: string;
     methods?: HttpMethods[];
-    allowedHeaders?: string;
+    allowedHeaders?: string[];
     exposedHeaders?: string[];
     credentials?: boolean;
     maxAge?: number;
