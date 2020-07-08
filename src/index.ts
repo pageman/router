@@ -114,14 +114,22 @@ namespace Router {
   export type Routes = Route[];
 }
 
+/**
+ * A simple and lightweight routing library for Node.
+ *
+ * ```ts
+ * const router = new Router();
+ * ```
+ * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
+ */
 class Router {
   private url: Url;
   private request: RequestHelper;
   private middlewares: (Router.MayaJSMiddleware | Router.ExpressMiddleware)[];
 
   /**
-   * Create a class responsible for routing incoming http request. Serves as mapper of routes that are added using this router.
-   * Uses middleware as plugins to make code more modular. Allow third party package to be injected and used as middleware.
+   * Create an instance of MayaJS Router class responsible for handling incoming http request. Serves as mapper of routes that are added using this router.
+   * Allows third party package to be injected and use as middlewares.
    *
    * ```ts
    * import Router from "@mayajs/router";
@@ -130,7 +138,6 @@ class Router {
    * const PORT = process.env.PORT || 3000; // This is not required
    * const router = new Router();
    *
-   * // Define your routes method in this manner
    * router.get("path", ({ res, req, params, query, body }) => {
    *   res.send({ message: "Hello, World" });
    * });
@@ -232,17 +239,31 @@ class Router {
    * @param path Request path
    * @param method A callback function
    * @return Router instance
+   *
+   * ```ts
+   * router.get("name-of-your-route", ({ res, req, params, query, body }) => {
+   *   // Do your thing here
+   * });
+   * ```
+   * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
   get(path: string, fn: Router.CallbackFunction): Router {
     return this.add("get", path, fn);
   }
 
   /**
-   * Handle GET request
+   * Handle POST request
    *
    * @param path Request path
    * @param method A callback function
    * @return Router instance
+   *
+   * ```ts
+   * router.post("name-of-your-route", ({ res, req, params, query, body }) => {
+   *   // Do your thing here
+   * });
+   * ```
+   * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
   post(path: string, fn: Router.CallbackFunction): Router {
     return this.add("post", path, fn);
@@ -254,6 +275,13 @@ class Router {
    * @param path Request path
    * @param method A callback function
    * @return Router instance
+   *
+   * ```ts
+   * router.put("name-of-your-route", ({ res, req, params, query, body }) => {
+   *   // Do your thing here
+   * });
+   * ```
+   * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
   put(path: string, fn: Router.CallbackFunction): Router {
     return this.add("put", path, fn);
@@ -265,6 +293,13 @@ class Router {
    * @param path Request path
    * @param method A callback function
    * @return Router instance
+   *
+   * ```ts
+   * router.patch("name-of-your-route", ({ res, req, params, query, body }) => {
+   *   // Do your thing here
+   * });
+   * ```
+   * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
   patch(path: string, fn: Router.CallbackFunction): Router {
     return this.add("patch", path, fn);
@@ -276,6 +311,13 @@ class Router {
    * @param path Request path
    * @param method A callback function
    * @return Router instance
+   *
+   * ```ts
+   * router.delete("name-of-your-route", ({ res, req, params, query, body }) => {
+   *   // Do your thing here
+   * });
+   * ```
+   * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
   delete(path: string, fn: Router.CallbackFunction): Router {
     return this.add("delete", path, fn);
@@ -287,6 +329,13 @@ class Router {
    * @param path Request path
    * @param method A callback function
    * @return Router instance
+   *
+   * ```ts
+   * router.options(({ res, req, params, query, body }) => {
+   *   // Do your thing here
+   * });
+   * ```
+   * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
   options(path: string, fn: Router.CallbackFunction): Router {
     return this.add("options", path, fn);
