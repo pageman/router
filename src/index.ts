@@ -62,6 +62,13 @@ namespace Router {
   }
 
   /**
+   * An Object represents all MayaJS Router options
+   */
+  export interface MayaJSRouterOptions {
+    cors?: Router.MayaJSMiddleware | Router.ExpressMiddleware | Router.CorsOptions;
+  }
+
+  /**
    * A function invoking the next middleware
    */
   export type NextFunction = (args?: any) => void;
@@ -126,6 +133,7 @@ class Router {
   private url: Url;
   private request: RequestHelper;
   private middlewares: (Router.MayaJSMiddleware | Router.ExpressMiddleware)[];
+  private corsHandler: Router.ExpressMiddleware;
 
   /**
    * Create an instance of MayaJS Router class responsible for handling incoming http request. Serves as mapper of routes that are added using this router.
@@ -151,16 +159,11 @@ class Router {
    *
    * See {@link https://github.com/mayajs/router/blob/master/README.md API documentation} for more info
    */
-  constructor(options?: { cors?: Router.MayaJSMiddleware | Router.ExpressMiddleware | Router.CorsOptions }, private routes: Router.Routes = []) {
+  constructor(options?: Router.MayaJSRouterOptions, private routes: Router.Routes = []) {
     this.url = new Url();
     this.request = new RequestHelper();
     this.middlewares = [];
-
-    if (typeof options?.cors === "object") {
-      this.middlewares.push(cors(options?.cors as Router.CorsOptions));
-    } else {
-      this.middlewares.push(options && options.cors ? (options.cors as Router.MayaJSMiddleware) : cors());
-    }
+    this.corsHandler = this.setCorsMiddleware(options);
   }
 
   /**
@@ -186,7 +189,7 @@ class Router {
       this.middlewares.push(this.finalize({ index, query, params, key }));
 
       // Invoke all middlewares
-      invoker(req, res, [bodyParser, ...this.middlewares]);
+      invoker(req, res, [bodyParser, this.corsHandler, ...this.middlewares]);
     };
   }
 
@@ -404,6 +407,13 @@ class Router {
    */
   private createContextObject(req: Router.RequestObject, res: Router.ResponseObject) {
     return { req, res, params: req.params, body: req.body, query: req.query };
+  }
+
+  private setCorsMiddleware(options?: Router.MayaJSRouterOptions) {
+    if (typeof options?.cors === "object") {
+      return cors(options?.cors as Router.CorsOptions);
+    }
+    return options && options.cors ? (options.cors as Router.ExpressMiddleware) : cors();
   }
 }
 
