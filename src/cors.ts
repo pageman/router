@@ -19,6 +19,24 @@ function setMethods(methods: HttpMethods[]) {
   return { "Access-Control-Allow-Methods": value };
 }
 
+function setAllowedHeaders(allowedHeaders: any, requestHeaders: any) {
+  let headers = {};
+  let vary = {};
+
+  if (!allowedHeaders) {
+    allowedHeaders = requestHeaders;
+    vary = { Vary: "Access-Control-Request-Headers" };
+  } else if (Array.isArray(allowedHeaders)) {
+    allowedHeaders = allowedHeaders.join(",");
+  }
+
+  if (allowedHeaders && allowedHeaders.length) {
+    headers = { "Access-Control-Allow-Headers": allowedHeaders };
+  }
+
+  return { ...headers, ...vary };
+}
+
 function setOrigin(requestOrigin: string | string[] | undefined, origin: string): { [key: string]: string } {
   let value = origin;
   let vary = {};
@@ -48,6 +66,7 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
     methods = ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
     credentials = false,
     exposedHeaders = [],
+    allowedHeaders = [],
     maxAge = 2592000,
   } = options;
 
@@ -74,12 +93,16 @@ export = function (options: CorsOptions = {}): ExpressMiddleware {
 
     // PRE-FLIGHT MODE
 
-    if (methods.length) {
+    if (methods.length > 0) {
       headers.push(setMethods(methods));
     }
 
     if (maxAge <= 0) {
       headers.push(setMaxAge(maxAge));
+    }
+
+    if (allowedHeaders.length > 0) {
+      headers.push(setAllowedHeaders(allowedHeaders, req.headers["access-control-request-headers"]));
     }
 
     setHeaders(res, headers);
