@@ -1,13 +1,13 @@
+import { MiddlewareParams } from ".";
 import { parse } from "querystring";
-import http from "http";
 
 const TEXT_PLAIN = "text/plain";
 const FORM_DATA = "multipart/form-data";
 const APPLICATION_JSON = "application/json";
 const FORM_URLENCODED = "application/x-www-form-urlencoded";
 
-export = function (request: http.IncomingMessage, callback: (body: any) => any) {
-  const contentType = request.headers["content-type"] ?? "";
+export = function ({ req }: MiddlewareParams, callback: (body: any) => void) {
+  const contentType = req.headers["content-type"] ?? "";
 
   let chunk = (chunks: any) => {
     body += chunks;
@@ -16,7 +16,7 @@ export = function (request: http.IncomingMessage, callback: (body: any) => any) 
   let body: any = "";
   let onEnd = () => {};
 
-  if (request.method === "GET" || request.method === "OPTIONS") {
+  if (req.method === "GET" || req.method === "OPTIONS") {
     // Don't parse 'GET' and 'OPTIONS' request method
     callback(body);
     return;
@@ -48,10 +48,10 @@ export = function (request: http.IncomingMessage, callback: (body: any) => any) 
   }
 
   // Get data from the REQUEST
-  request.on("data", chunk);
+  req.on("data", chunk);
 
   // Listen to end event
-  request.on("end", onEnd);
+  req.on("end", onEnd);
 };
 
 function formDataParser(body: any, contentType: string, callback: (body: any) => any) {

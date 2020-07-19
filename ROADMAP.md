@@ -4,15 +4,15 @@
 - [ ] blocking of specific routes
 - [ ] 'multipart/form-data' for files
 
-## v0.2.0
+## v0.2.0 - _(**7/19/2020**)_
 
 - **ROUTER CLASS**
-- [ ] router.use()
-- [ ] router.error() // Handles uncaugth error
+- [x] router.use()
+- [x] router.onError() // Handles uncaugth error
 - **ADDITIONAL FUNCTIONALITY**
-- [ ] middlewares
-- [ ] `next` function
-- [ ] cors library implementation
+- [x] middlewares
+- [x] `next` function
+- [x] cors library implementation
 
 ## v0.1.0 - _(**6/28/2020**)_
 
