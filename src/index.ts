@@ -134,6 +134,7 @@ class Router {
   private request: RequestHelper;
   private middlewares: (Router.MayaJSMiddleware | Router.ExpressMiddleware)[];
   private corsHandler: Router.ExpressMiddleware;
+  private errorHandler: (res: Router.ResponseObject, error: any) => void;
 
   /**
    * Create an instance of MayaJS Router class responsible for handling incoming http request. Serves as mapper of routes that are added using this router.
@@ -164,6 +165,10 @@ class Router {
     this.request = new RequestHelper();
     this.middlewares = [];
     this.corsHandler = this.setCorsMiddleware(options);
+    this.errorHandler = (res: Router.ResponseObject, error: any) => {
+      console.log(error);
+      res.json({ status: "ERROR", message: "Internal Server Error" });
+    };
   }
 
   /**
@@ -191,6 +196,17 @@ class Router {
       // Invoke all middlewares
       invoker(req, res, [bodyParser, this.corsHandler, ...this.middlewares]);
     };
+  }
+
+  /**
+   * Catch all uncaugth error generated from the server
+   *
+   * @param callback A function that will be call when an error occured
+   * @return Router instance
+   */
+  onError(callback: (res: http.ServerResponse, error: any) => void): Router {
+    this.errorHandler = callback;
+    return this;
   }
 
   /**
@@ -360,8 +376,13 @@ class Router {
       // GEt the method type
       const method = req.method?.toLocaleLowerCase() as Router.RequestMethod;
 
-      // Call the route
-      this.requestHandler(index, method, key, context);
+      try {
+        // Call the route
+        this.requestHandler(index, method, key, context);
+      } catch (error) {
+        // Handles uncaugth errors
+        this.errorHandler(response(res), error);
+      }
     };
   }
 
