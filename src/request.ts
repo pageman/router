@@ -1,5 +1,5 @@
 import http from "http";
-import { RequestObjectProps, RequestObject } from "./interfaces";
+import { RequestObjectProps, RequestObject } from ".";
 
 export = class RequestHelper {
   obj(req: http.IncomingMessage, props: RequestObjectProps): RequestObject {
