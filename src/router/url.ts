@@ -1,4 +1,4 @@
-import { Routes } from ".";
+import { Routes } from "../";
 import { URL } from "url";
 import http from "http";
 
