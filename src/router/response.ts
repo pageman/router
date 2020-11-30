@@ -1,4 +1,4 @@
-import { ResponseObjectProps, ResponseObject } from ".";
+import { ResponseObjectProps, ResponseObject } from "../";
 import http from "http";
 
 function ResponseFunctions(res: http.ServerResponse): ResponseObjectProps {
