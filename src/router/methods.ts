@@ -1,4 +1,4 @@
-import { RequestMethod } from ".";
+import { RequestMethod } from "../";
 import http from "http";
 
 /**
