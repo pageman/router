@@ -2,8 +2,54 @@ import http from "http";
 
 export interface RouterFunctions {
   init: () => void;
+  /**
+   * A function that accept a middleware.
+   *
+   *   MayaJS Middleware
+   * ```
+   * const middleware = (options, next) => {
+   *   // Do something here
+   *   next();
+   * };
+   * ```
+   * Other Middlewares i.e. Express
+   * ```
+   * const middleware = (req, res, next) => {
+   *   // Do something here
+   *   next();
+   * };
+   *
+   * app.use(middleware);
+   *
+   * // Calling a middleware factory
+   * app.use(middleware());
+   *
+   * // Using 'body-parser' as middleware
+   * app.use(bodyParser.json());
+   * ```
+   * @param middleware Middlewares are functions that can be executed before calling the main route.
+   */
   use: (middleware: Middlewares) => MayaRouter;
-  add: (path: string, route: MayaJsRoute | MayaJsRoute[]) => void;
+  /**
+   * A function that adds the path for a route and reference the routes define to MayaJs route list.
+   * This routes callback function will be executed everytime an incoming request has the same path or match its regex pattern.
+   *
+   * ```
+   * app.add("path-name", [
+   * {
+   *   method: "GET",
+   *   middlewares: [],
+   *   callback: ({ req, body, params, query }) => {
+   *      return "Hello, World"; // A value that the client will recieve
+   *    },
+   *  },
+   * ]);
+   * ```
+   *
+   * @param path A name or a regex pattern for a route endpoint
+   * @param routes A list of route objects
+   */
+  add: (path: string, routes: MayaJsRoute | MayaJsRoute[]) => void;
 }
 
 export type MayaJsRouter = ((req: any, res: any) => void) & RouterFunctions;
@@ -40,11 +86,43 @@ export type MayaJsRouteCallback = (ctx: MayaJsContext) => Promise<any> | any;
 
 export interface Route {
   dependencies?: any[];
+  /**
+   * An array of MayaJS or other third party middlewares. These middlewares are called before the callback function
+   *
+   * ```
+   * {
+   *    middlewares: [middleware1, middleware2],
+   * }
+   * ```
+   */
   middlewares?: Middlewares[];
+  /**
+   * A function that will be executed once the 'path-name' is the same with the request path
+   *
+   * ```
+   * {
+   *   callback: ({ req, body, params, query }) => {
+   *       return 'Hello, world'; // You can also return a JSON object
+   *   }
+   * }
+   * ```
+   */
   callback: MayaJsRouteCallback;
 }
 
 export interface MayaJsRoute extends Route {
+  /**
+   * The name of the method type of an incoming request.
+   * ```
+   * {
+   *   method: "GET"
+   * }
+   * ```
+   * Method types
+   * ```
+   * "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+   *```
+   */
   method: RequestMethods;
 }
 
