@@ -1,5 +1,4 @@
-import { MayaJSMiddleware, ExpressMiddleware } from "../";
-import http from "http";
+import { ExpressJsMiddleware, MayaJsContext, MayaJsMiddleware, Middlewares } from "../interface";
 
 /**
  * A helper function for invoking a list of MayaJS or ExpressJS middlewares.
@@ -9,22 +8,22 @@ import http from "http";
  * @param middlewares List of middlewares
  * @param error A message from the previous middleware
  */
-export = function invoker(
-  req: http.IncomingMessage,
-  res: http.ServerResponse,
-  middlewares: (MayaJSMiddleware | ExpressMiddleware)[],
-  error?: any
-): void | Promise<void> {
-  if (!middlewares.length) return;
+function middleware(middlewares: Middlewares[], ctx: MayaJsContext, callback: any, error?: any): void | Promise<void> {
+  if (!middlewares.length) return callback(ctx);
 
-  const mid = middlewares[0] as MayaJSMiddleware | ExpressMiddleware;
+  const { req, res } = ctx;
+  const current = middlewares[0];
+
   const next = async (error: any) => {
-    await invoker(req, res, middlewares.slice(1), error);
+    await middleware(middlewares.slice(1), { ...ctx, req, res }, callback, error);
   };
 
-  if (mid.length > 2) {
-    return (<ExpressMiddleware>mid)(req, res, next, error);
+  // Check if arguments are more than 2
+  if (current.length > 2) {
+    return (<ExpressJsMiddleware>current)(req, res, next, error);
   }
 
-  return (<MayaJSMiddleware>mid)({ req, res, error }, next);
-};
+  return (<MayaJsMiddleware>current)({ req, res, error, query: ctx.query, params: ctx.params, body: req.body }, next);
+}
+
+export default middleware;
