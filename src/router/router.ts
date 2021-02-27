@@ -18,6 +18,10 @@ app.add = function (path: string, routes: MayaJsRoute | MayaJsRoute[]) {
 };
 
 app.addRouteToList = function (path: string, route: MayaJsRoute) {
+  // We use '+' instead of template string '${}' because of performance gain
+  // See https://stackoverflow.com/questions/6094117/prepend-text-to-beginning-of-string
+  path = path.startsWith("/") ? path : "/" + path;
+
   // Check if path has params
   const hasParams = path.includes("/:");
 
@@ -25,9 +29,7 @@ app.addRouteToList = function (path: string, route: MayaJsRoute) {
   const list = !hasParams ? "routes" : "routesWithParams";
 
   // Initialize path if undefined
-  if (!this[list][path]) {
-    this[list][path] = {} as any;
-  }
+  if (!this[list][path]) this[list][path] = {} as any;
 
   // Add route to list
   this[list][path][route.method] = { middlewares: [], dependencies: [], ...route, regex: regex(path) };
