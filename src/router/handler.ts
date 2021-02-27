@@ -1,4 +1,4 @@
-import { MayaJsRequest, MayaJsResponse, MayaJSRouteParams, Middlewares, RequestMethods, VisitedRoutes } from "../interface";
+import { MayaJsContext, MayaJsRequest, MayaJsResponse, MayaJSRouteParams, Middlewares, RequestMethods, VisitedRoutes } from "../interface";
 import response from "./response";
 import middleware from "./middleware";
 import app from "./maya";
@@ -10,6 +10,8 @@ async function handler(req: MayaJsRequest, res: MayaJsResponse) {
 
   // Set local variables
   const parsedUrl = url.parse(req.url ?? "", true);
+
+  // Get path name
   const routePath = parsedUrl.pathname;
 
   if (!routePath) {
@@ -20,16 +22,20 @@ async function handler(req: MayaJsRequest, res: MayaJsResponse) {
   // Sends a reponse message and ending the request
   const send = async (route: VisitedRoutes | MayaJSRouteParams) => {
     try {
+      // Create MayaJS params
       const params = (route as VisitedRoutes).params || { ...route.regex.exec(routePath)?.groups };
-      const context = { req, res, query: { ...parsedUrl.query }, params };
-      const execute = async (ctx: any) => {
-        const result = await app.executeRoute(routePath, route, ctx);
-        res.send(result);
-      };
 
-      middleware([...app.middlewares, ...(route.middlewares as Middlewares[])], { ...context, body: req?.body }, execute);
+      // Create MayaJS context
+      const context = { req, res, query: { ...parsedUrl.query }, params, body: req?.body };
+
+      // Create a factory method for executing current route
+      const execute = async (ctx: MayaJsContext) => res.send(await app.executeRoute(routePath, route, ctx));
+
+      // Run middlewares before calling the main route callback
+      middleware([...app.middlewares, ...(route.middlewares as Middlewares[])], context, execute);
     } catch (error) {
-      console.log(error);
+      // Send error back to client
+      res.send(error);
     }
   };
 
