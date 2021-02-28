@@ -35,30 +35,48 @@ export interface RouterFunctions {
    * This routes callback function will be executed everytime an incoming request has the same path or match its regex pattern.
    *
    * ```
-   * app.add("path-name", [
+   * app.add([
    * {
-   *   method: "GET",
+   *   // Route name or path name
+   *   path: "path-name",
+   *
+   *   // Route specific middlewares
    *   middlewares: [],
-   *   callback: ({ req, body, params, query }) => {
-   *      return "Hello, World"; // A value that the client will recieve
+   *
+   *   // A route method definition
+   *   GET: ({ req, body, file, params, query }) => {
+   *
+   *      // Response value
+   *      return "Hello, World";
+   *   },
+   *
+   *   // A method object that has callbacka and middlewares
+   *   POST: {
+   *
+   *    // Method specific middlewares
+   *    middlewares: [middleware],
+   *
+   *    // Method callback function
+   *    callback: ({ req, body, params, query }) => {
+   *      return "Hello, World";
    *    },
-   *  },
+   *   },
+   * }
    * ]);
    * ```
    *
-   * @param path A name or a regex pattern for a route endpoint
-   * @param routes A list of route objects
+   * @param routes A list of routes
    */
-  add: (path: string, routes: MayaJsRoute | MayaJsRoute[]) => void;
+  add: (routes: MayaJsRoute[]) => void;
 }
 
 export type MayaJsRouter = ((req: any, res: any) => void) & RouterFunctions;
 
 interface RouterHelperMethod extends RouterFunctions {
-  addRouteToList: (path: string, route: MayaJsRoute) => void;
-  findRoute: (path: string, method: RequestMethods) => MayaJSRouteParams | null;
+  addRouteToList: (route: MayaJsRoute) => void;
+  findRoute: (path: string, method: MethodNames) => MayaJSRouteParams | null;
   executeRoute: (path: string, route: MayaJSRouteParams, context: MayaJsContext) => Promise<any>;
-  visitedRoute: (path: string, method: RequestMethods) => VisitedRoutes | null;
+  visitedRoute: (path: string, method: MethodNames) => VisitedRoutes | null;
 }
 
 export interface MayaRouter extends RouterHelperMethod {
@@ -82,7 +100,7 @@ export interface MiddlewareContext {
 
 export interface MayaJsContext extends MiddlewareContext, QueryParams {}
 
-export type MayaJsRouteCallback = (ctx: MayaJsContext) => Promise<any> | any;
+export type RouteCallback = (ctx: MayaJsContext) => Promise<any> | any;
 
 export interface Route {
   dependencies?: any[];
@@ -96,43 +114,34 @@ export interface Route {
    * ```
    */
   middlewares?: Middlewares[];
+}
+
+export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
   /**
-   * A function that will be executed once the 'path-name' is the same with the request path
+   * A list of child routes that inherit the path of its parent
+   */
+  children?: MayaJsRoute[];
+  /**
+   * A path for a route endpoint
    *
    * ```
    * {
-   *   callback: ({ req, body, params, query }) => {
-   *       return 'Hello, world'; // You can also return a JSON object
-   *   }
+   *    path: "users"
    * }
    * ```
    */
-  callback: MayaJsRouteCallback;
+  path: string;
 }
 
-export interface MayaJsRoute extends Route {
-  /**
-   * The name of the method type of an incoming request.
-   * ```
-   * {
-   *   method: "GET"
-   * }
-   * ```
-   * Method types
-   * ```
-   * "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-   *```
-   */
-  method: RequestMethods;
-}
-
-export interface MayaJSRouteParams extends MayaJsRoute {
+export interface MayaJSRouteParams extends Route {
   regex: RegExp;
+  callback: RouteCallback;
+  method: MethodNames;
 }
 
 export interface MayaJSRoutes<T> {
   [x: string]: {
-    [K in RequestMethods]: T;
+    [K in MethodNames]: T;
   };
 }
 
@@ -165,7 +174,30 @@ export interface MayaJsRequest extends http.IncomingMessage, QueryParams {
 /**
  *  Generic methods from Node.js 0.10
  * */
-export type RequestMethods = "GET" | "POST" | "PUT" | "HEAD" | "DELETE" | "OPTIONS" | "PATCH";
+export type MethodNames = "GET" | "POST" | "PUT" | "HEAD" | "DELETE" | "OPTIONS" | "PATCH";
+
+/**
+ *  A record of method name and its callback functions
+ * */
+export type RouteMethodCallbacks = {
+  /**
+   * A function that will be executed once the 'path-name' is the same with the request path
+   *
+   * ```
+   * {
+   *   GET: ({ req, body, params, query }) => {
+   *       return 'Hello, world'; // You can also return a JSON object
+   *   }
+   * }
+   * ```
+   */
+  [P in MethodNames]: RouteCallback | RouteMethod;
+};
+
+export type RouteMethod = {
+  middlewares?: Middlewares[];
+  callback: RouteCallback;
+};
 
 export type MayaJsNextfunction = (error?: any) => Promise<void> | void;
 
