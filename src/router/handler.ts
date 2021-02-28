@@ -1,4 +1,4 @@
-import { MayaJsContext, MayaJsRequest, MayaJsResponse, MayaJSRouteParams, Middlewares, RequestMethods, VisitedRoutes } from "../interface";
+import { MayaJsContext, MayaJsRequest, MayaJsResponse, MayaJSRouteParams, Middlewares, MethodNames, VisitedRoutes } from "../interface";
 import response from "./response";
 import middleware from "./middleware";
 import app from "./maya";
@@ -39,7 +39,7 @@ async function handler(req: MayaJsRequest, res: MayaJsResponse) {
     }
   };
 
-  const method = req.method as RequestMethods;
+  const method = req.method as MethodNames;
 
   // Check if path exist in visited routes or in non-param routes
   const route = app.visitedRoute(routePath, method) || app.findRoute(routePath, method);
