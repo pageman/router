@@ -1,4 +1,4 @@
-import { MayaJsRoute, MayaJsContext, MayaJSRouteParams, VisitedRoutes, RequestMethods, MayaRouter, Middlewares } from "../interface";
+import { MayaJsRoute, MayaJsContext, MayaJSRouteParams, VisitedRoutes, MethodNames, MayaRouter, Middlewares, RouteCallback, RouteMethod } from "../interface";
 import regex from "../utils/regex";
 
 // Export default route object
@@ -9,18 +9,18 @@ export const app: MayaRouter = {
   middlewares: [],
 } as any;
 
-app.add = function (path: string, routes: MayaJsRoute | MayaJsRoute[]) {
+app.add = function (routes: MayaJsRoute[]) {
   // Check if routes is an array
-  if (!Array.isArray(routes)) return this.addRouteToList(path, routes);
+  if (!Array.isArray(routes)) return this.addRouteToList(routes);
 
   // Map routes and add each route to the list
-  routes.map((route) => this.addRouteToList(path, route));
+  routes.map((route) => this.addRouteToList(route));
 };
 
-app.addRouteToList = function (path: string, route: MayaJsRoute) {
+app.addRouteToList = function (route: MayaJsRoute) {
   // We use '+' instead of template string '${}' because of performance gain
   // See https://stackoverflow.com/questions/6094117/prepend-text-to-beginning-of-string
-  path = path.startsWith("/") ? path : "/" + path;
+  const path = route.path.startsWith("/") ? route.path : "/" + route.path;
 
   // Check if path has params
   const hasParams = path.includes("/:");
@@ -31,8 +31,33 @@ app.addRouteToList = function (path: string, route: MayaJsRoute) {
   // Initialize path if undefined
   if (!this[list][path]) this[list][path] = {} as any;
 
-  // Add route to list
-  this[list][path][route.method] = { middlewares: [], dependencies: [], ...route, regex: regex(path) };
+  (Object.keys(route) as MethodNames[]).map((key): void => {
+    // Define method name list
+    const methods = ["GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS", "PATCH"];
+
+    // Check if key is a method
+    if (methods.includes(key)) {
+      // Get current method
+      const current = route[key] as RouteMethod;
+
+      // Set default middlewares from route
+      let middlewares = route?.middlewares ?? [];
+
+      // Check if current method has middlewares
+      if (current?.middlewares) {
+        middlewares = [...middlewares, ...current.middlewares];
+      }
+
+      // Add route to list
+      this[list][path][key] = {
+        middlewares,
+        dependencies: [],
+        method: key,
+        regex: regex(path),
+        callback: current?.callback ?? (route[key] as RouteCallback),
+      };
+    }
+  });
 };
 
 app.init = function () {
@@ -47,7 +72,7 @@ app.use = function (middleware: Middlewares) {
   return this;
 };
 
-app.findRoute = function (path: string, method: RequestMethods): MayaJSRouteParams | null {
+app.findRoute = function (path: string, method: MethodNames): MayaJSRouteParams | null {
   // Check if path exist on `routes`
   let route = this?.routes && this?.routes[path] ? this?.routes[path] : null;
 
@@ -97,6 +122,6 @@ app.executeRoute = async function (path: string, route: MayaJSRouteParams, conte
   return message;
 };
 
-app.visitedRoute = function (path: string, method: RequestMethods): VisitedRoutes | null {
+app.visitedRoute = function (path: string, method: MethodNames): VisitedRoutes | null {
   return this?.visitedRoutes && this?.visitedRoutes[path] && this?.visitedRoutes[path][method] ? this?.visitedRoutes[path][method] : null;
 };
