@@ -12,10 +12,11 @@ function middleware(middlewares: Middlewares[], ctx: MayaJsContext, callback: an
   if (!middlewares.length) return callback(ctx);
 
   const { req, res } = ctx;
+  const context = { ...ctx, body: req.body };
   const current = middlewares[0];
 
   const next = async (error: any) => {
-    await middleware(middlewares.slice(1), { ...ctx, req, res }, callback, error);
+    await middleware(middlewares.slice(1), { ...context, req, res }, callback, error);
   };
 
   // Check if arguments are more than 2
@@ -23,7 +24,7 @@ function middleware(middlewares: Middlewares[], ctx: MayaJsContext, callback: an
     return (<ExpressJsMiddleware>current)(req, res, next, error);
   }
 
-  return (<MayaJsMiddleware>current)({ req, res, error, query: ctx.query, params: ctx.params, body: req.body }, next);
+  return (<MayaJsMiddleware>current)(context, next);
 }
 
 export default middleware;
