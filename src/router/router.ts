@@ -9,18 +9,29 @@ export const app: MayaRouter = {
   middlewares: [],
 } as any;
 
+// We use '+' instead of template string '${}' because of performance gain
+// See https://stackoverflow.com/questions/6094117/prepend-text-to-beginning-of-string
+const sanitizePath = (path: string) => (path.startsWith("/") ? path : "/" + path);
+
 app.add = function (routes: MayaJsRoute[]) {
   // Check if routes is an array
   if (!Array.isArray(routes)) return this.addRouteToList(routes);
 
+  const mapRoutes = (parent = "") => (route: MayaJsRoute) => {
+    parent = parent.length > 0 ? sanitizePath(parent) : "";
+    this.addRouteToList(route, parent);
+
+    if (route?.children && route?.children.length > 0) {
+      route.children.map(mapRoutes(parent + sanitizePath(route.path)));
+    }
+  };
+
   // Map routes and add each route to the list
-  routes.map((route) => this.addRouteToList(route));
+  routes.map(mapRoutes());
 };
 
-app.addRouteToList = function (route: MayaJsRoute) {
-  // We use '+' instead of template string '${}' because of performance gain
-  // See https://stackoverflow.com/questions/6094117/prepend-text-to-beginning-of-string
-  const path = route.path.startsWith("/") ? route.path : "/" + route.path;
+app.addRouteToList = function (route: MayaJsRoute, parent = "") {
+  const path = parent + sanitizePath(route.path);
 
   // Check if path has params
   const hasParams = path.includes("/:");
