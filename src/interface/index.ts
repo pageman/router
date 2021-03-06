@@ -73,7 +73,7 @@ export interface RouterFunctions {
 export type MayaJsRouter = ((req: any, res: any) => void) & RouterFunctions;
 
 interface RouterHelperMethod extends RouterFunctions {
-  addRouteToList: (route: MayaJsRoute) => void;
+  addRouteToList: (route: MayaJsRoute, parent?: string) => void;
   findRoute: (path: string, method: MethodNames) => MayaJSRouteParams | null;
   executeRoute: (path: string, route: MayaJSRouteParams, context: MayaJsContext) => Promise<any>;
   visitedRoute: (path: string, method: MethodNames) => VisitedRoutes | null;
