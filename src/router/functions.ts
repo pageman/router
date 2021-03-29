@@ -22,10 +22,27 @@ router.addRouteToList = function (route: MayaJsRoute, parent = "") {
   // Initialize path if undefined
   if (!this[list][path]) this[list][path] = {} as any;
 
-  (Object.keys(route) as MethodNames[]).map((key): void => {
-    // Define method name list
-    const methods = ["GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS", "PATCH"];
+  const methods = ["GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS", "PATCH"];
 
+  if (route.controller && route.hasOwnProperty("controller")) {
+    const controller = new route.controller();
+    const controllerProps = Object.getOwnPropertyNames(Object.getPrototypeOf(controller)) as MethodNames[];
+
+    controllerProps.map((key: MethodNames) => {
+      if (methods.includes(key)) {
+        let middlewares = controller?.middlewares?.[key] ?? [];
+
+        // Create callback function
+        const callback = controller[key];
+
+        // Add route to list
+        this[list][path][key] = { middlewares, dependencies: [], method: key, regex: regex(path), callback };
+      }
+    });
+    return;
+  }
+
+  (Object.keys(route) as MethodNames[]).map((key): void => {
     if (methods.includes(key) && route.hasOwnProperty("controller")) {
       throw new Error(`Property controller can't be used with ${key} method on route '${path}'`);
     }
