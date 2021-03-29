@@ -26,8 +26,12 @@ router.addRouteToList = function (route: MayaJsRoute, parent = "") {
     // Define method name list
     const methods = ["GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS", "PATCH"];
 
+    if (methods.includes(key) && route.hasOwnProperty("controller")) {
+      throw new Error(`Property controller can't be used with ${key} method on route '${path}'`);
+    }
+
     // Check if key is a method
-    if (methods.includes(key)) {
+    if (methods.includes(key) && !route.hasOwnProperty("controller")) {
       // Get current method
       const current = route[key] as RouteMethod;
 
