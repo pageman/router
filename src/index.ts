@@ -1,5 +1,5 @@
 import { MayaJsRouter, ExpressJsMiddleware, MayaJsMiddleware } from "./interface";
-import app from "./router/maya";
+import app from "./router";
 
 export interface ExpressMiddlewares extends ExpressJsMiddleware {}
 export interface MayaMiddlewares extends MayaJsMiddleware {}
@@ -14,11 +14,10 @@ export interface MayaMiddlewares extends MayaJsMiddleware {}
  *
  * const app = mayajs();
  *
- * app.add("", [
+ * app.add([
  *   {
- *     method: "GET",
- *     middlewares: [],
- *     callback: () => {
+ *    path: "hello",
+ *    GET: ({ req, body, params, query }) => {
  *       return 'Hello, World!';
  *     },
  *   },
