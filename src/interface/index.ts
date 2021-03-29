@@ -121,6 +121,19 @@ export interface Route {
   middlewares?: Middlewares[];
 }
 
+export interface Type<T> extends Function {
+  new (...args: any[]): T;
+}
+
+export abstract class Controller {
+  GET(): void {}
+  POST(): void {}
+  DELETE(): void {}
+  PUT(): void {}
+  PATCH(): void {}
+  OPTIONS(): void {}
+}
+
 export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
   /**
    * A list of child routes that inherit the path of its parent
@@ -136,6 +149,10 @@ export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
    * ```
    */
   path: string;
+  /**
+   * A class for define a route controller
+   */
+  controller?: Type<Controller>;
 }
 
 export interface MayaJSRouteParams extends Route {
