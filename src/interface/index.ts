@@ -125,13 +125,19 @@ export interface Type<T> extends Function {
   new (...args: any[]): T;
 }
 
+export type ControllerMiddleware = {
+  [key in MethodNames]: Middlewares[];
+};
+
 export abstract class Controller {
-  GET(): void {}
-  POST(): void {}
-  DELETE(): void {}
-  PUT(): void {}
-  PATCH(): void {}
-  OPTIONS(): void {}
+  middlewares: Partial<ControllerMiddleware> = {};
+  GET(ctx: MayaJsContext): Promise<any> | any {}
+  POST(ctx: MayaJsContext): Promise<any> | any {}
+  DELETE(ctx: MayaJsContext): Promise<any> | any {}
+  PUT(ctx: MayaJsContext): Promise<any> | any {}
+  PATCH(ctx: MayaJsContext): Promise<any> | any {}
+  OPTIONS(ctx: MayaJsContext): Promise<any> | any {}
+  HEAD(ctx: MayaJsContext): Promise<any> | any {}
 }
 
 export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
