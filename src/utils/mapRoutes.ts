@@ -13,10 +13,16 @@ export default (router: any) => {
     // Add route to list
     router.addRouteToList(route, parent);
 
+    const routePath = parent + sanitizePath(route.path);
+
+    if (route?.children !== undefined && route?.loadChildren !== undefined) {
+      throw new Error(`Property 'loadChildren' can't be used with 'children' in route '${routePath}'`);
+    }
+
     // Check if route has children
     if (route?.children && route?.children.length > 0) {
       // Map children's routes
-      route.children.map(mapRoutes(parent + sanitizePath(route.path)));
+      route.children.map(mapRoutes(routePath));
     }
   };
 
