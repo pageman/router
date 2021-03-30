@@ -129,6 +129,9 @@ export type ControllerMiddleware = {
   [key in MethodNames]: Middlewares[];
 };
 
+/**
+ * An abstract class that define all the methods for a single route
+ */
 export abstract class Controller {
   middlewares: Partial<ControllerMiddleware> = {};
   GET(ctx: MayaJsContext): Promise<any> | any {}
@@ -140,11 +143,14 @@ export abstract class Controller {
   HEAD(ctx: MayaJsContext): Promise<any> | any {}
 }
 
+export abstract class CustomModule {
+  abstract controllers: Type<Controller>[];
+  imports: Type<CustomModule>[] = [];
+  exports: (Type<CustomModule> | Type<CustomModule>)[] = [];
+  provider: Type<any>[] = [];
+}
+
 export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
-  /**
-   * A list of child routes that inherit the path of its parent
-   */
-  children?: MayaJsRoute[];
   /**
    * A path for a route endpoint
    *
@@ -159,6 +165,14 @@ export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
    * A class for define a route controller
    */
   controller?: Type<Controller>;
+  /**
+   * A list of child routes that inherit the path of its parent
+   */
+  children?: MayaJsRoute[];
+  /**
+   * Lazy load a module
+   */
+  loadChildren?: () => Promise<Type<CustomModule>>;
 }
 
 export interface MayaJSRouteParams extends Route {
