@@ -39,34 +39,35 @@ router.addRouteToList = function (route: MayaJsRoute, parent = "") {
         this[list][path][key] = { middlewares, dependencies: [], method: key, regex: regex(path), callback };
       }
     });
-    return;
   }
 
-  (Object.keys(route) as MethodNames[]).map((key): void => {
-    if (methods.includes(key) && route.hasOwnProperty("controller")) {
-      throw new Error(`Property controller can't be used with ${key} method on route '${path}'`);
-    }
-
-    // Check if key is a method
-    if (methods.includes(key) && !route.hasOwnProperty("controller")) {
-      // Get current method
-      const current = route[key] as RouteMethod;
-
-      // Set default middlewares from route
-      let middlewares = route?.middlewares ?? [];
-
-      // Check if current method has middlewares
-      if (current?.middlewares) {
-        middlewares = [...middlewares, ...current.middlewares];
+  if (!route?.controller) {
+    (Object.keys(route) as MethodNames[]).map((key): void => {
+      if (methods.includes(key) && route.hasOwnProperty("controller")) {
+        throw new Error(`Property controller can't be used with ${key} method on route '${path}'`);
       }
 
-      // Create callback function
-      const callback = current?.callback ?? (route[key] as RouteCallback);
+      // Check if key is a method
+      if (methods.includes(key) && !route.hasOwnProperty("controller")) {
+        // Get current method
+        const current = route[key] as RouteMethod;
 
-      // Add route to list
-      this[list][path][key] = { middlewares, dependencies: [], method: key, regex: regex(path), callback };
-    }
-  });
+        // Set default middlewares from route
+        let middlewares = route?.middlewares ?? [];
+
+        // Check if current method has middlewares
+        if (current?.middlewares) {
+          middlewares = [...middlewares, ...current.middlewares];
+        }
+
+        // Create callback function
+        const callback = current?.callback ?? (route[key] as RouteCallback);
+
+        // Add route to list
+        this[list][path][key] = { middlewares, dependencies: [], method: key, regex: regex(path), callback };
+      }
+    });
+  }
 };
 
 router.findRoute = function (path: string, method: MethodNames): MayaJSRouteParams | null {
