@@ -11,14 +11,13 @@ import {
 } from "../interface";
 import merge from "../utils/merge";
 import regex from "../utils/regex";
-import { sanitizePath } from "../utils/helpers";
 
 // Export default route object
 const router: any = {};
 
-router.addRouteToList = function (route: MayaJsRoute, parent = "") {
+router.addRouteToList = function (route: MayaJsRoute) {
   // Sanitize current route path
-  const path = parent + sanitizePath(route.path);
+  const path = route.path;
 
   // Check if path has params
   const hasParams = path.includes("/:");
