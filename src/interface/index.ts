@@ -144,13 +144,15 @@ export abstract class Controller {
 }
 
 type ModuleProviders = Type<any>[];
-export type ModuleWithProviders = { module: Type<CustomModule>; providers: ModuleProviders };
-export type ModuleImports = Type<CustomModule> | ModuleWithProviders;
+export type ModuleCustomType = Type<CustomModule>;
+export type ControllerType = Type<Controller>;
+export type ModuleWithProviders = { module: ModuleCustomType; providers: ModuleProviders };
+export type ModuleImports = ModuleCustomType | ModuleWithProviders;
 
 export abstract class CustomModule {
-  declarations: Type<Controller>[] = [];
+  declarations: ControllerType[] = [];
   imports: ModuleImports[] = [];
-  exports: (Type<CustomModule> | Type<CustomModule>)[] = [];
+  exports: (ModuleCustomType | ControllerType)[] = [];
   providers: ModuleProviders = [];
   invoke() {}
   static forRoot(...args: any): ModuleWithProviders {
@@ -262,3 +264,7 @@ export type RouterFunction = RouterProps & RouterMethods;
 export type RouterMapper = (parent?: string) => (route: MayaJsRoute) => void;
 
 export type RouterMapperFactory = (router: RouterFunction, app: MayaJsRouter) => RouterMapper;
+
+export type ModuleMapper = (imported: ModuleImports) => void;
+
+export type ModuleMapperFactory = (router: RouterFunction, app: MayaJsRouter, parent: string) => ModuleMapper;
