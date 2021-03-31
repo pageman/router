@@ -1,4 +1,4 @@
-import { MayaJsRouter, ExpressJsMiddleware, MayaJsMiddleware } from "./interface";
+import { MayaJsRouter, ExpressJsMiddleware, MayaJsMiddleware, CustomModule, MayaJsRoute, RouterMapper } from "./interface";
 import app from "./router";
 
 export interface ExpressMiddlewares extends ExpressJsMiddleware {}
@@ -36,6 +36,31 @@ function maya(): MayaJsRouter {
 
   // Return MayaJs router
   return app;
+}
+
+export class RouterModule extends CustomModule {
+  static routes: MayaJsRoute[] = [];
+  static isRoot = false;
+
+  constructor(mapRoutes: RouterMapper, parent: string) {
+    RouterModule.routes.map(mapRoutes(parent));
+    super();
+  }
+
+  invoke() {
+    if (!RouterModule.isRoot) {
+      throw new Error("RouterModule is not properly called using 'forRoot'.");
+    }
+  }
+
+  static forRoot(routes: MayaJsRoute[]) {
+    RouterModule.isRoot = true;
+    RouterModule.routes = routes;
+    return {
+      module: RouterModule,
+      providers: [],
+    };
+  }
 }
 
 export default maya;
