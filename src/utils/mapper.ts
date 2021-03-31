@@ -1,39 +1,27 @@
-import {
-  CustomModule,
-  MayaJsRoute,
-  MayaJsRouter,
-  ModuleImports,
-  ModuleWithProviders,
-  RouterFunction,
-  RouterMapper,
-  RouterMapperFactory,
-  RouterMethods,
-  RouterProps,
-  Type,
-} from "../interface";
+import { ModuleCustomType, ModuleMapper, ModuleMapperFactory, ModuleWithProviders, RouterMapper, RouterMapperFactory } from "../interface";
 import { sanitizePath } from "./helpers";
 
-const mapModules = (router: RouterProps & RouterMethods, app: MayaJsRouter, parent: string) => (imported: ModuleImports) => {
+const mapModules: ModuleMapperFactory = (router, app, parent): ModuleMapper => (imported) => {
   const args: any[] = [];
-  let tempMod;
+  let currentModule;
 
-  if ((imported as ModuleWithProviders)?.module) tempMod = (imported as ModuleWithProviders).module;
-  if (!imported.hasOwnProperty("module")) tempMod = imported as Type<CustomModule>;
-  if (!tempMod) return;
-  if (tempMod.name === "RouterModule") {
+  if ((imported as ModuleWithProviders)?.module) currentModule = (imported as ModuleWithProviders).module;
+  if (!imported.hasOwnProperty("module")) currentModule = imported as ModuleCustomType;
+  if (!currentModule) return;
+  if (currentModule.name === "RouterModule") {
     args.push(routeMapper(router, app));
     args.push(parent);
   }
 
-  const _module = new tempMod(...args);
+  const _module = new currentModule(...args);
 
   _module.invoke();
   _module.imports.map(mapModules(router, app, parent));
 };
 
-const routeMapper: RouterMapperFactory = (router: RouterFunction, app: MayaJsRouter): RouterMapper => {
+const routeMapper: RouterMapperFactory = (router, app): RouterMapper => {
   // Recursive function for mapping array of routes
-  const mapRoutes = (parent = "") => (route: MayaJsRoute) => {
+  const mapRoutes: RouterMapper = (parent = "") => (route) => {
     // Create parent route
     parent = parent.length > 0 ? sanitizePath(parent) : "";
 
