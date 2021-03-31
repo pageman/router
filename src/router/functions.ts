@@ -1,13 +1,20 @@
-import { MayaJsRoute, MayaJSRouteParams, VisitedRoutes, MethodNames, RouteCallback, RouteMethod, RouterMethods, RouterProps } from "../interface";
+import {
+  MayaJsRoute,
+  MayaJSRouteParams,
+  VisitedRoutes,
+  MethodNames,
+  RouteCallback,
+  RouteMethod,
+  RouterMethods,
+  RouterProps,
+  RouterFunction,
+} from "../interface";
 import merge from "../utils/merge";
 import regex from "../utils/regex";
+import { sanitizePath } from "../utils/helpers";
 
 // Export default route object
 const router: any = {};
-
-// We use '+' instead of template string '${}' because of performance gain
-// See https://stackoverflow.com/questions/6094117/prepend-text-to-beginning-of-string
-const sanitizePath = (path: string) => (path.startsWith("/") ? path : "/" + path);
 
 router.addRouteToList = function (route: MayaJsRoute, parent = "") {
   // Sanitize current route path
@@ -125,4 +132,4 @@ router.visitedRoute = function (path: string, method: MethodNames): VisitedRoute
   return this?.visitedRoutes && this?.visitedRoutes[path] && this?.visitedRoutes[path][method] ? this?.visitedRoutes[path][method] : null;
 };
 
-export default (app: RouterProps) => merge(app, router as RouterMethods);
+export default (app: RouterProps): RouterFunction => merge(app, router as RouterMethods);
