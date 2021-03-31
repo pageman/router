@@ -1,12 +1,12 @@
-import { MayaJsRequest, MayaJsResponse, MayaJsRoute, MethodNames, Middlewares, VisitedRoutes } from "../interface";
-import routeMapper from "../utils/mapRoutes";
+import { MayaJsRequest, MayaJsResponse, MayaJsRoute, MethodNames, Middlewares, RouterFunction, RouterMapper, VisitedRoutes } from "../interface";
+import routeMapper from "../utils/mapper";
 import middleware from "./middleware";
 import functions from "./functions";
 
 const app: any = {};
 
-let router: any;
-let mapRoutes: any;
+let router: RouterFunction;
+let mapRoutes: RouterMapper;
 
 app.add = function (routes: MayaJsRoute[]) {
   // Check if routes is an array
@@ -24,7 +24,7 @@ app.init = function () {
 
   // Initialize mayajs router
   router = functions(props);
-  mapRoutes = routeMapper(router);
+  mapRoutes = routeMapper(router, app);
 };
 
 app.use = function (middleware: Middlewares) {
@@ -41,7 +41,10 @@ const send = async (req: MayaJsRequest, res: MayaJsResponse, parsedUrl: any) => 
   const method = req.method as MethodNames;
 
   // Get path name
-  const routePath = parsedUrl.pathname;
+  let routePath = parsedUrl.pathname;
+
+  // Remove "/" on the end of the route path
+  if (routePath.endsWith("/")) routePath = routePath.slice(0, -1);
 
   // Check if path exist in visited routes or in non-param routes
   const route = router.visitedRoute(routePath, method) || router.findRoute(routePath, method);
