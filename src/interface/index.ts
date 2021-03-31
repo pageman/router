@@ -143,11 +143,19 @@ export abstract class Controller {
   HEAD(ctx: MayaJsContext): Promise<any> | any {}
 }
 
+type ModuleProviders = Type<any>[];
+export type ModuleWithProviders = { module: Type<CustomModule>; providers: ModuleProviders };
+export type ModuleImports = Type<CustomModule> | ModuleWithProviders;
+
 export abstract class CustomModule {
-  abstract controllers: Type<Controller>[];
-  imports: Type<CustomModule>[] = [];
+  declarations: Type<Controller>[] = [];
+  imports: ModuleImports[] = [];
   exports: (Type<CustomModule> | Type<CustomModule>)[] = [];
-  provider: Type<any>[] = [];
+  providers: ModuleProviders = [];
+  invoke() {}
+  static forRoot(...args: any): ModuleWithProviders {
+    return { module: class extends CustomModule {}, providers: [] };
+  }
 }
 
 export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
@@ -248,3 +256,9 @@ export type ExpressJsMiddleware = (req: MayaJsRequest, res: MayaJsResponse, next
 export type MayaJsMiddleware = (context: MayaJsContext, next: MayaJsNextfunction) => void;
 
 export type Middlewares = ExpressJsMiddleware | MayaJsMiddleware;
+
+export type RouterFunction = RouterProps & RouterMethods;
+
+export type RouterMapper = (parent?: string) => (route: MayaJsRoute) => void;
+
+export type RouterMapperFactory = (router: RouterFunction, app: MayaJsRouter) => RouterMapper;
