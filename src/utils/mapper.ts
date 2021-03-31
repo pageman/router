@@ -25,28 +25,29 @@ const routeMapper: RouterMapperFactory = (router, app): RouterMapper => {
     // Create parent route
     parent = parent.length > 0 ? sanitizePath(parent) : "";
 
-    // Add route to list
-    router.addRouteToList(route, parent);
+    // Sanitize route path
+    route.path = parent + sanitizePath(route.path);
 
-    const routePath = parent + sanitizePath(route.path);
+    // Add route to list
+    router.addRouteToList(route);
 
     if (route?.children !== undefined && route?.loadChildren !== undefined) {
-      throw new Error(`Property 'loadChildren' can't be used with 'children' in route '${routePath}'`);
+      throw new Error(`Property 'loadChildren' can't be used with 'children' in route '${route.path}'`);
     }
 
     if (route?.controller !== undefined && route?.loadChildren !== undefined) {
-      throw new Error(`Property 'loadChildren' can't be used with 'controller' in route '${routePath}'`);
+      throw new Error(`Property 'loadChildren' can't be used with 'controller' in route '${route.path}'`);
     }
 
     // Check if route has children
     if (route?.children && route?.children.length > 0) {
       // Map children's routes
-      route.children.map(mapRoutes(routePath));
+      route.children.map(mapRoutes(route.path));
     }
 
     if (route?.loadChildren) {
       try {
-        route?.loadChildren().then(mapModules(router, app, routePath));
+        route?.loadChildren().then(mapModules(router, app, route.path));
       } catch (error) {
         console.log(error);
       }
