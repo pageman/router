@@ -1,21 +1,19 @@
-import {
-  MayaJsRoute,
-  MayaJSRouteParams,
-  VisitedRoutes,
-  MethodNames,
-  RouteCallback,
-  RouteMethod,
-  RouterMethods,
-  RouterProps,
-  RouterFunction,
-} from "../interface";
+import { MethodNames, RouteCallback, RouteMethod, RouterMethods, RouterProps, RouterFunction } from "../interface";
 import merge from "../utils/merge";
 import regex from "../utils/regex";
 
-// Export default route object
-const router: any = {};
+export const props = { routes: {}, routesWithParams: {}, visitedRoutes: {}, middlewares: [], context: {} };
 
-router.addRouteToList = function (route: MayaJsRoute) {
+// Export default route object
+const router: RouterMethods = {
+  addRouteToList: (route, _module) => {},
+  findRoute: (path, method) => null,
+  executeRoute: (path, route) => Promise.resolve(),
+  visitedRoute: (path, method) => null,
+  ...props,
+};
+
+router.addRouteToList = function (route, _module) {
   // Sanitize current route path
   const path = route.path;
 
@@ -76,7 +74,7 @@ router.addRouteToList = function (route: MayaJsRoute) {
   }
 };
 
-router.findRoute = function (path: string, method: MethodNames): MayaJSRouteParams | null {
+router.findRoute = function (path, method) {
   // Check if path exist on `routes`
   let route = this?.routes && this?.routes[path] ? this?.routes[path] : null;
 
@@ -101,7 +99,7 @@ router.findRoute = function (path: string, method: MethodNames): MayaJSRoutePara
   return route ? route[method] : null;
 };
 
-router.executeRoute = async function (path: string, route: MayaJSRouteParams) {
+router.executeRoute = async function (path, route) {
   // Set message variable
   let message = "";
 
@@ -127,7 +125,7 @@ router.executeRoute = async function (path: string, route: MayaJSRouteParams) {
   return message;
 };
 
-router.visitedRoute = function (path: string, method: MethodNames): VisitedRoutes | null {
+router.visitedRoute = function (path, method) {
   return this?.visitedRoutes && this?.visitedRoutes[path] && this?.visitedRoutes[path][method] ? this?.visitedRoutes[path][method] : null;
 };
 
