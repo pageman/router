@@ -72,8 +72,8 @@ export interface RouterFunctions {
 
 export type MayaJsRouter = ((req: any, res: any) => void) & RouterFunctions;
 
-interface RouterHelperMethod {
-  addRouteToList: (route: MayaJsRoute, parent?: string) => void;
+export interface RouterHelperMethod {
+  addRouteToList: (route: MayaJsRoute, _module?: CustomModule | null) => void;
   findRoute: (path: string, method: MethodNames) => MayaJSRouteParams | null;
   executeRoute: (path: string, route: MayaJSRouteParams) => Promise<any>;
   visitedRoute: (path: string, method: MethodNames) => VisitedRoutes | null;
@@ -154,6 +154,7 @@ export abstract class CustomModule {
   imports: ModuleImports[] = [];
   exports: (ModuleCustomType | ControllerType)[] = [];
   providers: ModuleProviders = [];
+  parent: CustomModule | null = null;
   invoke() {}
   static forRoot(...args: any): ModuleWithProviders {
     return { module: class extends CustomModule {}, providers: [] };
@@ -263,8 +264,8 @@ export type RouterFunction = RouterProps & RouterMethods;
 
 export type RouterMapper = (parent?: string) => (route: MayaJsRoute) => void;
 
-export type RouterMapperFactory = (router: RouterFunction, app: MayaJsRouter) => RouterMapper;
+export type RouterMapperFactory = (router: RouterFunction, app: MayaJsRouter, _module?: CustomModule | null) => RouterMapper;
 
 export type ModuleMapper = (imported: ModuleImports) => void;
 
-export type ModuleMapperFactory = (router: RouterFunction, app: MayaJsRouter, parent: string) => ModuleMapper;
+export type ModuleMapperFactory = (router: RouterFunction, app: MayaJsRouter, parentRoute: string, parentModule?: CustomModule | null) => ModuleMapper;
