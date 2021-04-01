@@ -1,7 +1,7 @@
 import { MayaJsRequest, MayaJsResponse, MayaJsRoute, MethodNames, Middlewares, RouterFunction, RouterMapper, VisitedRoutes } from "../interface";
 import routeMapper from "../utils/mapper";
 import middleware from "./middleware";
-import functions from "./functions";
+import functions, { props } from "./functions";
 
 const app: any = {};
 
@@ -17,8 +17,6 @@ app.add = function (routes: MayaJsRoute[]) {
 };
 
 app.init = function () {
-  const props: any = { routes: {}, routesWithParams: {}, visitedRoutes: {}, middlewares: [], context: {} };
-
   // Add default headers
   app["headers"] = { "X-Powered-By": "MayaJS" };
 
