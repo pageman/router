@@ -1,7 +1,7 @@
-import { ModuleCustomType, ModuleMapper, ModuleMapperFactory, ModuleWithProviders, RouterMapper, RouterMapperFactory } from "../interface";
+import { CustomModule, ModuleCustomType, ModuleMapper, ModuleMapperFactory, ModuleWithProviders, RouterMapper, RouterMapperFactory } from "../interface";
 import { sanitizePath } from "./helpers";
 
-const mapModules: ModuleMapperFactory = (router, app, parent): ModuleMapper => (imported) => {
+const mapModules: ModuleMapperFactory = (router, app, parentRoute, parentModule = null): ModuleMapper => (imported) => {
   const args: any[] = [];
   let currentModule;
 
@@ -9,17 +9,35 @@ const mapModules: ModuleMapperFactory = (router, app, parent): ModuleMapper => (
   if (!imported.hasOwnProperty("module")) currentModule = imported as ModuleCustomType;
   if (!currentModule) return;
   if (currentModule.name === "RouterModule") {
-    args.push(routeMapper(router, app));
-    args.push(parent);
+    args.push(routeMapper(router, app, parentModule));
+    args.push(parentRoute);
   }
 
   const _module = new currentModule(...args);
 
+  if (parentModule) {
+    _module.parent = parentModule;
+  }
+
   _module.invoke();
-  _module.imports.map(mapModules(router, app, parent));
+  _module.imports.map(mapModules(router, app, parentRoute, _module));
 };
 
-const routeMapper: RouterMapperFactory = (router, app): RouterMapper => {
+const declarationsMapper = (_module: CustomModule | null, name: string = ""): boolean => {
+  let isDeclared = false;
+
+  if (_module) {
+    isDeclared = _module.declarations.some((item) => item.name === name);
+  }
+
+  if (!isDeclared && _module !== null) {
+    return declarationsMapper(_module.parent, name);
+  }
+
+  return isDeclared;
+};
+
+const routeMapper: RouterMapperFactory = (router, app, _module = null): RouterMapper => {
   // Recursive function for mapping array of routes
   const mapRoutes: RouterMapper = (parent = "") => (route) => {
     // Create parent route
@@ -27,6 +45,14 @@ const routeMapper: RouterMapperFactory = (router, app): RouterMapper => {
 
     // Sanitize route path
     route.path = parent + sanitizePath(route.path);
+
+    const controllerName = route?.controller?.name;
+    const moduleName = _module?.constructor.name;
+    const isDeclared = declarationsMapper(_module, controllerName);
+
+    if (!isDeclared && _module !== null) {
+      throw new Error(`${controllerName} is not declared in ${moduleName}`);
+    }
 
     // Add route to list
     router.addRouteToList(route);
@@ -46,11 +72,12 @@ const routeMapper: RouterMapperFactory = (router, app): RouterMapper => {
     }
 
     if (route?.loadChildren) {
-      try {
-        route?.loadChildren().then(mapModules(router, app, route.path));
-      } catch (error) {
-        console.log(error);
-      }
+      route
+        ?.loadChildren()
+        .then(mapModules(router, app, route.path, _module))
+        .catch((error) => {
+          console.log(`\x1b[31m${error}\x1b[0m`);
+        });
     }
   };
 
