@@ -1,14 +1,16 @@
-import { MayaJsRequest, MayaJsResponse, MayaJsRoute, MethodNames, Middlewares, RouterFunction, RouterMapper, VisitedRoutes } from "../interface";
+import { MayaRouter, MethodNames, ResponseSender, RouterFunction, RouterMapper, VisitedRoutes } from "../interface";
 import routeMapper from "../utils/mapper";
 import middleware from "./middleware";
-import functions, { props } from "./functions";
+import functions from "./functions";
 
-const app: any = {};
+export const props = { routes: {}, routesWithParams: {}, visitedRoutes: {}, middlewares: [], context: {} };
+
+const app: MayaRouter = { init: () => {}, use: (middleware) => app, add: (routes) => {}, headers: { "X-Powered-By": "MayaJS" }, ...props };
 
 let router: RouterFunction;
 let mapRoutes: RouterMapper;
 
-app.add = function (routes: MayaJsRoute[]) {
+app.add = function (routes) {
   // Check if routes is an array
   if (!Array.isArray(routes)) return router.addRouteToList(routes);
 
@@ -17,15 +19,14 @@ app.add = function (routes: MayaJsRoute[]) {
 };
 
 app.init = function () {
-  // Add default headers
-  app["headers"] = { "X-Powered-By": "MayaJS" };
+  const { routes, routesWithParams, visitedRoutes, middlewares, context } = app;
 
   // Initialize mayajs router
-  router = functions(props);
+  router = functions({ routes, routesWithParams, visitedRoutes, middlewares, context });
   mapRoutes = routeMapper(router, app);
 };
 
-app.use = function (middleware: Middlewares) {
+app.use = function (middleware) {
   // Add middleware to the list
   if (middleware) {
     router.middlewares.push(middleware);
@@ -34,7 +35,7 @@ app.use = function (middleware: Middlewares) {
 };
 
 // Sends a reponse message and ending the request
-const send = async (req: MayaJsRequest, res: MayaJsResponse, parsedUrl: any) => {
+const send: ResponseSender = async (req, res, parsedUrl) => {
   // Get current method
   const method = req.method as MethodNames;
 
@@ -64,8 +65,10 @@ const send = async (req: MayaJsRequest, res: MayaJsResponse, parsedUrl: any) => 
     // Create a factory method for executing current route
     const execute = async () => res.send(await router.executeRoute(routePath, route));
 
+    const middlewares = route.middlewares !== undefined ? route.middlewares : [];
+
     // Run middlewares before calling the main route callback
-    middleware([...router.middlewares, ...(route.middlewares as Middlewares[])], router.context, execute);
+    middleware([...router.middlewares, ...middlewares], router.context, execute);
   } catch (error) {
     // Send error back to client
     res.send(error);
