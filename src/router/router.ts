@@ -3,7 +3,7 @@ import routeMapper from "../utils/mapper";
 import middleware from "./middleware";
 import functions from "./functions";
 
-export const props = { routes: {}, routesWithParams: {}, visitedRoutes: {}, middlewares: [], context: {} };
+export const props = { routes: {}, routesWithParams: {}, visitedRoutes: {}, middlewares: [], context: {}, dependencies: {} };
 
 const app: MayaRouter = { init: () => {}, use: (middleware) => app, add: (routes) => {}, headers: { "X-Powered-By": "MayaJS" }, ...props };
 
@@ -19,10 +19,10 @@ app.add = function (routes) {
 };
 
 app.init = function () {
-  const { routes, routesWithParams, visitedRoutes, middlewares, context } = app;
+  const { routes, routesWithParams, visitedRoutes, middlewares, context, dependencies } = app;
 
   // Initialize mayajs router
-  router = functions({ routes, routesWithParams, visitedRoutes, middlewares, context });
+  router = functions({ routes, routesWithParams, visitedRoutes, middlewares, context, dependencies });
   mapRoutes = routeMapper(router, app);
 };
 

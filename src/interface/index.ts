@@ -86,6 +86,9 @@ export interface RouterProps {
   visitedRoutes: MayaJSRoutes<VisitedRoutes>;
   middlewares: Middlewares[];
   context: any;
+  dependencies: {
+    [x: string]: Services;
+  };
 }
 
 export interface RouterMethods extends RouterHelperMethod, RouterProps {}
