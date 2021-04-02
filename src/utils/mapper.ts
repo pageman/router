@@ -1,10 +1,6 @@
 import { CustomModule, ModuleCustomType, ModuleMapper, ModuleMapperFactory, ModuleWithProviders, RouterMapper, RouterMapperFactory } from "../interface";
 import { sanitizePath } from "./helpers";
 
-export const mapDependencies = (dependencies?: any[]) => {
-  return dependencies ? dependencies.map((dep) => (dep.constructor.name === "Function" ? new dep() : null)) : [];
-};
-
 const mapModules: ModuleMapperFactory = (router, app, parentRoute, parentModule = null): ModuleMapper => (imported) => {
   const args: any[] = [];
   let currentModule;
