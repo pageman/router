@@ -1,8 +1,7 @@
 import { MethodNames, RouteCallback, RouteMethod, RouterMethods, RouterProps, RouterFunction } from "../interface";
 import merge from "../utils/merge";
 import regex from "../utils/regex";
-
-export const props = { routes: {}, routesWithParams: {}, visitedRoutes: {}, middlewares: [], context: {} };
+import { props } from "./router";
 
 // Export default route object
 const router: RouterMethods = {
