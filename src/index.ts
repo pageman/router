@@ -42,8 +42,7 @@ export class RouterModule extends CustomModule {
   static routes: MayaJsRoute[] = [];
   static isRoot = false;
 
-  constructor(mapRoutes: RouterMapper, parent: string) {
-    RouterModule.routes.map(mapRoutes(parent));
+  constructor(private mapRoutes: RouterMapper, private parentName: string = "") {
     super();
   }
 
@@ -51,15 +50,14 @@ export class RouterModule extends CustomModule {
     if (!RouterModule.isRoot) {
       throw new Error("RouterModule is not properly called using 'forRoot'.");
     }
+
+    RouterModule.routes.map(this.mapRoutes(this.parentName));
   }
 
   static forRoot(routes: MayaJsRoute[]) {
     RouterModule.isRoot = true;
     RouterModule.routes = routes;
-    return {
-      module: RouterModule,
-      providers: [],
-    };
+    return { module: RouterModule, providers: [] };
   }
 }
 
