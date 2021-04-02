@@ -1,5 +1,5 @@
 import { MethodNames, RouteCallback, RouteMethod, RouterMethods, RouterProps, RouterFunction } from "../interface";
-import { mapDependencies } from "../utils/mapper";
+import { mapDependencies } from "../utils/helpers";
 import merge from "../utils/merge";
 import regex from "../utils/regex";
 import { props } from "./router";
@@ -29,7 +29,7 @@ router.addRouteToList = function (route, _module) {
   const methods = ["GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS", "PATCH"];
 
   if (route.controller && route.hasOwnProperty("controller")) {
-    const dependencies = mapDependencies(route?.dependencies);
+    const dependencies = mapDependencies(this.dependencies, _module, route?.dependencies);
     const controller = new route.controller(...dependencies);
     const controllerProps = Object.getOwnPropertyNames(Object.getPrototypeOf(controller)) as MethodNames[];
 
