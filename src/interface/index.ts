@@ -68,6 +68,7 @@ export interface RouterFunctions {
    * @param routes A list of routes
    */
   add: (routes: MayaJsRoute[]) => void;
+  headers: { [x: string]: string };
 }
 
 export type MayaJsRouter = ((req: any, res: any) => void) & RouterFunctions;
@@ -89,7 +90,7 @@ export interface RouterProps {
 
 export interface RouterMethods extends RouterHelperMethod, RouterProps {}
 
-export interface MayaRouter extends RouterMethods, RouterFunctions {}
+export interface MayaRouter extends RouterFunctions, RouterProps {}
 
 export interface QueryParams {
   query: { [x: string]: string | string[] };
@@ -252,6 +253,8 @@ export type RouteMethod = {
   callback: RouteCallback;
 };
 
+export type ResponseSender = (req: MayaJsRequest, res: MayaJsResponse, parsedUrl: any) => Promise<void>;
+
 export type MayaJsNextfunction = (error?: any) => Promise<void> | void;
 
 export type ExpressJsMiddleware = (req: MayaJsRequest, res: MayaJsResponse, next: MayaJsNextfunction, error: any) => void;
@@ -264,8 +267,8 @@ export type RouterFunction = RouterProps & RouterMethods;
 
 export type RouterMapper = (parent?: string) => (route: MayaJsRoute) => void;
 
-export type RouterMapperFactory = (router: RouterFunction, app: MayaJsRouter, _module?: CustomModule | null) => RouterMapper;
+export type RouterMapperFactory = (router: RouterFunction, app: MayaRouter, _module?: CustomModule | null) => RouterMapper;
 
 export type ModuleMapper = (imported: ModuleImports) => void;
 
-export type ModuleMapperFactory = (router: RouterFunction, app: MayaJsRouter, parentRoute: string, parentModule?: CustomModule | null) => ModuleMapper;
+export type ModuleMapperFactory = (router: RouterFunction, app: MayaRouter, parentRoute: string, parentModule?: CustomModule | null) => ModuleMapper;
