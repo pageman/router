@@ -107,6 +107,7 @@ export interface MiddlewareContext {
 export interface MayaJsContext extends MiddlewareContext, QueryParams {}
 
 export type RouteCallback = (ctx: MayaJsContext) => Promise<any> | any;
+export type RouteCallbackFunction = (ctx: MayaJsContext) => RouteCallbackFunction;
 
 export interface Route {
   dependencies?: any[];
@@ -130,10 +131,12 @@ export type ControllerMiddleware = {
   [key in MethodNames]: Middlewares[];
 };
 
+export abstract class Services {}
+
 /**
  * An abstract class that define all the methods for a single route
  */
-export abstract class Controller {
+export class Controller {
   middlewares: Partial<ControllerMiddleware> = {};
   GET(ctx: MayaJsContext): Promise<any> | any {}
   POST(ctx: MayaJsContext): Promise<any> | any {}
@@ -176,7 +179,7 @@ export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
   /**
    * A class for define a route controller
    */
-  controller?: Type<Controller>;
+  controller?: ControllerType;
   /**
    * A list of child routes that inherit the path of its parent
    */
@@ -184,7 +187,11 @@ export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
   /**
    * Lazy load a module
    */
-  loadChildren?: () => Promise<Type<CustomModule>>;
+  loadChildren?: () => Promise<ModuleCustomType>;
+  /**
+   * A list of dependencies for a controller
+   */
+  dependencies?: any[];
 }
 
 export interface MayaJSRouteParams extends Route {
@@ -245,12 +252,12 @@ export type RouteMethodCallbacks = {
    * }
    * ```
    */
-  [P in MethodNames]: RouteCallback | RouteMethod;
+  [P in MethodNames]: RouteCallbackFunction | RouteMethod;
 };
 
 export type RouteMethod = {
   middlewares?: Middlewares[];
-  callback: RouteCallback;
+  callback: RouteCallbackFunction;
 };
 
 export type ResponseSender = (req: MayaJsRequest, res: MayaJsResponse, parsedUrl: any) => Promise<void>;
