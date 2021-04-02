@@ -72,6 +72,7 @@ export interface RouterFunctions {
 }
 
 export type MayaJsRouter = ((req: any, res: any) => void) & RouterFunctions;
+export type RouterDependencies = { [x: string]: Services };
 
 export interface RouterHelperMethod {
   addRouteToList: (route: MayaJsRoute, _module?: CustomModule | null) => void;
@@ -86,9 +87,7 @@ export interface RouterProps {
   visitedRoutes: MayaJSRoutes<VisitedRoutes>;
   middlewares: Middlewares[];
   context: any;
-  dependencies: {
-    [x: string]: Services;
-  };
+  dependencies: RouterDependencies;
 }
 
 export interface RouterMethods extends RouterHelperMethod, RouterProps {}
@@ -150,7 +149,7 @@ export class Controller {
   HEAD(ctx: MayaJsContext): Promise<any> | any {}
 }
 
-type ModuleProviders = Type<any>[];
+export type ModuleProviders = Type<any>[];
 export type ModuleCustomType = Type<CustomModule>;
 export type ControllerType = Type<Controller>;
 export type ModuleWithProviders = { module: ModuleCustomType; providers: ModuleProviders };
@@ -282,3 +281,5 @@ export type RouterMapperFactory = (router: RouterFunction, app: MayaRouter, _mod
 export type ModuleMapper = (imported: ModuleImports) => void;
 
 export type ModuleMapperFactory = (router: RouterFunction, app: MayaRouter, parentRoute: string, parentModule?: CustomModule | null) => ModuleMapper;
+
+export type FindDependency = (name: string, dependencies: RouterDependencies) => void;
