@@ -59,7 +59,7 @@ const routeMapper: RouterMapperFactory = (router, app, _module = null): RouterMa
     }
 
     // Add route to list
-    router.addRouteToList(route);
+    router.addRouteToList(route, _module);
 
     if (route?.children !== undefined && route?.loadChildren !== undefined) {
       throw new Error(`Property 'loadChildren' can't be used with 'children' in route '${route.path}'`);
