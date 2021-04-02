@@ -1,4 +1,5 @@
 import { MethodNames, RouteCallback, RouteMethod, RouterMethods, RouterProps, RouterFunction } from "../interface";
+import { mapDependencies } from "../utils/mapper";
 import merge from "../utils/merge";
 import regex from "../utils/regex";
 import { props } from "./router";
@@ -28,7 +29,8 @@ router.addRouteToList = function (route, _module) {
   const methods = ["GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS", "PATCH"];
 
   if (route.controller && route.hasOwnProperty("controller")) {
-    const controller = new route.controller();
+    const dependencies = mapDependencies(route?.dependencies);
+    const controller = new route.controller(...dependencies);
     const controllerProps = Object.getOwnPropertyNames(Object.getPrototypeOf(controller)) as MethodNames[];
 
     controllerProps.map((key: MethodNames) => {
@@ -36,7 +38,7 @@ router.addRouteToList = function (route, _module) {
         let middlewares = controller?.middlewares?.[key] ?? [];
 
         // Create callback function
-        const callback = controller[key];
+        const callback = (args: any) => controller[key](args) as RouteCallback;
 
         // Add route to list
         this[list][path][key] = { middlewares, dependencies: [], method: key, regex: regex(path), callback };
@@ -63,8 +65,10 @@ router.addRouteToList = function (route, _module) {
           middlewares = [...middlewares, ...current.middlewares];
         }
 
+        const routeCallback = (args: any) => (route[key] as RouteCallback)(args);
+
         // Create callback function
-        const callback = current?.callback ?? (route[key] as RouteCallback);
+        const callback = current?.callback ?? routeCallback;
 
         // Add route to list
         this[list][path][key] = { middlewares, dependencies: [], method: key, regex: regex(path), callback };
