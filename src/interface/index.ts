@@ -169,7 +169,7 @@ export abstract class MayaJsModule {
   exports: (ModuleCustomType | ControllerType)[] = [];
   providers: ModuleProviders = [];
   dependencies: any[] = [];
-  parent: CustomModule | MayaJsModule | null = null;
+  parent: ParentModule = null;
   path = "";
 }
 
@@ -293,10 +293,8 @@ export type RouterMapperFactory = (router: RouterFunction, app: MayaRouter, _mod
 
 export type ModuleMapper = (imported: ModuleImports) => void;
 
-export type ModuleMapperFactory = (
-  router: RouterFunction,
-  app: MayaRouter,
-  parentModule?: CustomModule | MayaJsModule | null | { path: string }
-) => ModuleMapper;
+export type ParentModule = CustomModule | MayaJsModule | null;
+
+export type ModuleMapperFactory = (router: RouterFunction, app: MayaRouter, parentModule?: ParentModule | { path: string }) => ModuleMapper;
 
 export type FindDependency = (name: string, dependencies: RouterDependencies) => void;

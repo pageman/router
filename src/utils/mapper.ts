@@ -1,11 +1,11 @@
 import {
   CustomModule,
-  MayaJsModule,
   ModuleCustomType,
   ModuleMapper,
   ModuleMapperFactory,
   ModuleWithProviders,
   ModuleWithProvidersProps,
+  ParentModule,
   RouterMapper,
   RouterMapperFactory,
 } from "../interface";
@@ -48,16 +48,12 @@ const mapModules: ModuleMapperFactory = (router, app, parentModule = null): Modu
   _module.imports.map(mapModules(router, app, _module));
 };
 
-const declarationsMapper = (_module: CustomModule | MayaJsModule | null, name: string = ""): boolean => {
+const declarationsMapper = (_module: ParentModule, name: string = ""): boolean => {
   let isDeclared = false;
 
-  if (_module) {
-    isDeclared = _module.declarations.some((item) => item.name === name);
-  }
+  if (_module) isDeclared = _module.declarations.some((item) => item.name === name);
 
-  if (!isDeclared && _module !== null) {
-    return declarationsMapper(_module.parent, name);
-  }
+  if (!isDeclared && _module !== null) return declarationsMapper(_module.parent, name);
 
   return isDeclared;
 };

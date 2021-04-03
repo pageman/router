@@ -1,4 +1,4 @@
-import { RouterDependencies, CustomModule, ModuleProviders, Type, RouterProps, RouterMapper, MayaJsModule } from "../interface";
+import { RouterDependencies, ModuleProviders, Type, RouterProps, RouterMapper, ParentModule } from "../interface";
 import merge from "./merge";
 
 // We use '+' instead of template string '${}' because of performance gain
@@ -25,13 +25,13 @@ export const getFunctionProps = <T>(func: Function | Object): T => {
   return _this;
 };
 
-const mapProviders = (name: string, _module?: CustomModule | MayaJsModule | null): undefined | ModuleProviders | Function => {
+const mapProviders = (name: string, _module?: ParentModule): undefined | ModuleProviders | Function => {
   if (!_module) return;
   const index = _module?.providers?.findIndex((item) => item.name === name);
   return index > -1 ? _module?.providers[index] : mapProviders(name, _module.parent);
 };
 
-const findDependency = (name: string, dependencies: RouterDependencies, props: RouterProps, _module?: CustomModule | MayaJsModule | null) => {
+const findDependency = (name: string, dependencies: RouterDependencies, props: RouterProps, _module?: ParentModule) => {
   if (dependencies[name] && name === "RoutesMapper") return (dependencies[name] as (...args: any) => RouterMapper)(props, props, _module);
   if (dependencies[name]) return dependencies[name];
 
@@ -43,7 +43,7 @@ const findDependency = (name: string, dependencies: RouterDependencies, props: R
   }
 };
 
-export function mapDependencies(routerDep: RouterDependencies, _module?: CustomModule | MayaJsModule | null, dependencies?: any[]) {
+export function mapDependencies(routerDep: RouterDependencies, _module?: ParentModule, dependencies?: any[]) {
   const props = getFunctionProps<RouterProps>(mapDependencies);
   const _dependencies = dependencies ?? _module?.dependencies;
   return _dependencies ? _dependencies.map((dep) => findDependency(dep.name, routerDep, props, _module) ?? undefined) : [];
