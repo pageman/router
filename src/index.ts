@@ -38,11 +38,13 @@ function maya(): MayaJsRouter {
   return app;
 }
 
+export class RoutesMapper {}
+
 export class RouterModule extends CustomModule {
   static routes: MayaJsRoute[] = [];
   static isRoot = false;
 
-  constructor(private mapRoutes: RouterMapper, private parentName: string = "") {
+  constructor(private mapper: RouterMapper, private parentName: string = "") {
     super();
   }
 
@@ -51,13 +53,13 @@ export class RouterModule extends CustomModule {
       throw new Error("RouterModule is not properly called using 'forRoot'.");
     }
 
-    RouterModule.routes.map(this.mapRoutes(this.parentName));
+    RouterModule.routes.map(this.mapper(this.parentName));
   }
 
   static forRoot(routes: MayaJsRoute[]) {
     RouterModule.isRoot = true;
     RouterModule.routes = routes;
-    return { module: RouterModule, providers: [] };
+    return { module: RouterModule, providers: [], dependencies: [RoutesMapper, String] };
   }
 }
 
