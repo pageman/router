@@ -150,17 +150,30 @@ export class Controller {
 }
 
 export type ModuleProviders = Type<any>[];
-export type ModuleCustomType = Type<CustomModule>;
+export type ModuleCustomType = Type<CustomModule | MayaJsModule>;
 export type ControllerType = Type<Controller>;
-export type ModuleWithProviders = { module: ModuleCustomType; providers: ModuleProviders };
 export type ModuleImports = ModuleCustomType | ModuleWithProviders;
 
-export abstract class CustomModule {
+export interface ModuleWithProviders extends ModuleWithProvidersProps {
+  module: ModuleCustomType;
+}
+
+export interface ModuleWithProvidersProps {
+  providers: ModuleProviders;
+  dependencies?: (Type<Services> | Function)[];
+  imports?: ModuleImports[];
+}
+export abstract class MayaJsModule {
   declarations: ControllerType[] = [];
   imports: ModuleImports[] = [];
   exports: (ModuleCustomType | ControllerType)[] = [];
   providers: ModuleProviders = [];
-  parent: CustomModule | null = null;
+  dependencies: any[] = [];
+  parent: CustomModule | MayaJsModule | null = null;
+  path = "";
+}
+
+export abstract class CustomModule extends MayaJsModule {
   invoke() {}
   static forRoot(...args: any): ModuleWithProviders {
     return { module: class extends CustomModule {}, providers: [] };
@@ -280,6 +293,10 @@ export type RouterMapperFactory = (router: RouterFunction, app: MayaRouter, _mod
 
 export type ModuleMapper = (imported: ModuleImports) => void;
 
-export type ModuleMapperFactory = (router: RouterFunction, app: MayaRouter, parentRoute: string, parentModule?: CustomModule | null) => ModuleMapper;
+export type ModuleMapperFactory = (
+  router: RouterFunction,
+  app: MayaRouter,
+  parentModule?: CustomModule | MayaJsModule | null | { path: string }
+) => ModuleMapper;
 
 export type FindDependency = (name: string, dependencies: RouterDependencies) => void;
