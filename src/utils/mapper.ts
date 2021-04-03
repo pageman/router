@@ -1,29 +1,54 @@
-import { CustomModule, ModuleCustomType, ModuleMapper, ModuleMapperFactory, ModuleWithProviders, RouterMapper, RouterMapperFactory } from "../interface";
-import { sanitizePath } from "./helpers";
+import {
+  CustomModule,
+  MayaJsModule,
+  ModuleCustomType,
+  ModuleMapper,
+  ModuleMapperFactory,
+  ModuleWithProviders,
+  ModuleWithProvidersProps,
+  RouterMapper,
+  RouterMapperFactory,
+} from "../interface";
+import { dependencyMapperFactory, sanitizePath } from "./helpers";
 
-const mapModules: ModuleMapperFactory = (router, app, parentRoute, parentModule = null): ModuleMapper => (imported) => {
-  const args: any[] = [];
+const mapModules: ModuleMapperFactory = (router, app, parentModule = null): ModuleMapper => (imported) => {
+  let args: any[] = [];
+  let customModuleProps: ModuleWithProvidersProps = { dependencies: [], providers: [], imports: [] };
   let currentModule;
+  let isCustomModule = false;
 
-  if ((imported as ModuleWithProviders)?.module) currentModule = (imported as ModuleWithProviders).module;
+  if ((imported as ModuleWithProviders)?.module) {
+    currentModule = (imported as ModuleWithProviders).module;
+    const { dependencies, providers, imports } = imported as ModuleWithProviders;
+    customModuleProps = { dependencies, providers, imports };
+    isCustomModule = true;
+  }
+
   if (!imported.hasOwnProperty("module")) currentModule = imported as ModuleCustomType;
   if (!currentModule) return;
-  if (currentModule.name === "RouterModule") {
-    args.push(routeMapper(router, app, parentModule));
-    args.push(parentRoute);
+
+  if (isCustomModule) {
+    const mapDependencies = dependencyMapperFactory(router);
+    const tempModule = new currentModule(...args);
+    const { providers, imports, dependencies } = customModuleProps;
+    tempModule.parent = parentModule as CustomModule;
+    tempModule.providers = providers;
+    tempModule.dependencies = dependencies ?? [];
+    tempModule.imports = imports ?? [];
+    args = mapDependencies(app.dependencies, tempModule);
   }
+
+  if (currentModule.name === "RouterModule") args[1] = (parentModule as any)?.parent?.path ?? "";
 
   const _module = new currentModule(...args);
 
-  if (parentModule) {
-    _module.parent = parentModule;
-  }
+  if (parentModule) _module.parent = parentModule as CustomModule;
+  if (isCustomModule) (_module as CustomModule).invoke();
 
-  _module.invoke();
-  _module.imports.map(mapModules(router, app, parentRoute, _module));
+  _module.imports.map(mapModules(router, app, _module));
 };
 
-const declarationsMapper = (_module: CustomModule | null, name: string = ""): boolean => {
+const declarationsMapper = (_module: CustomModule | MayaJsModule | null, name: string = ""): boolean => {
   let isDeclared = false;
 
   if (_module) {
@@ -39,12 +64,14 @@ const declarationsMapper = (_module: CustomModule | null, name: string = ""): bo
 
 const routeMapper: RouterMapperFactory = (router, app, _module = null): RouterMapper => {
   // Recursive function for mapping array of routes
-  const mapRoutes: RouterMapper = (parent = "") => (route) => {
+  const RouterMapper: RouterMapper = (parent = "") => (route) => {
     // Create parent route
     parent = parent.length > 0 ? sanitizePath(parent) : "";
 
     // Sanitize route path
     route.path = parent + sanitizePath(route.path);
+
+    if (_module !== null) _module.path = route.path;
 
     const controllerName = route?.controller?.name;
     const moduleName = _module?.constructor.name;
@@ -68,20 +95,20 @@ const routeMapper: RouterMapperFactory = (router, app, _module = null): RouterMa
     // Check if route has children
     if (route?.children && route?.children.length > 0) {
       // Map children's routes
-      route.children.map(mapRoutes(route.path));
+      route.children.map(RouterMapper(route.path));
     }
 
     if (route?.loadChildren) {
       route
         ?.loadChildren()
-        .then(mapModules(router, app, route.path, _module))
+        .then(mapModules(router, app, _module ?? { path: route.path }))
         .catch((error) => {
-          console.log(`\x1b[31m${error}\x1b[0m`);
+          console.log(`\x1b[31m${error.toString()}\x1b[0m`, error);
         });
     }
   };
 
-  return mapRoutes;
+  return RouterMapper;
 };
 
 export default routeMapper;
