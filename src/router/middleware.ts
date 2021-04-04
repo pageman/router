@@ -19,7 +19,7 @@ function middleware(middlewares: Middlewares[], ctx: MayaJsContext, callback: an
   const next = (error: any) => middleware(middlewares.slice(1), { ...context, req, res }, callback, error);
 
   // Check if arguments are more than 2
-  return current.length > 2 ? (<ExpressJsMiddleware>current)(req, res, next, error) : (<MayaJsMiddleware>current)(context, next);
+  return current.length > 2 ? (<ExpressJsMiddleware>current)(req, res, next, error) : (<MayaJsMiddleware>current)(context, next, error);
 }
 
 export default middleware;
