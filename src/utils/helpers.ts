@@ -25,6 +25,10 @@ export const getFunctionProps = <T>(func: Function | Object): T => {
   return _this;
 };
 
+export const logger = {
+  red: (value: string) => console.log(`\x1b[31m${value}\x1b[0m`),
+};
+
 const mapProviders = (name: string, _module?: ParentModule): undefined | ModuleProviders | Function => {
   if (!_module) return;
   const index = _module?.providers?.findIndex((item) => item.name === name);
@@ -46,7 +50,18 @@ const findDependency = (name: string, dependencies: RouterDependencies, props: R
 export function mapDependencies(routerDep: RouterDependencies, _module?: ParentModule, dependencies?: any[]) {
   const props = getFunctionProps<RouterProps>(mapDependencies);
   const _dependencies = dependencies ?? _module?.dependencies;
-  return _dependencies ? _dependencies.map((dep) => findDependency(dep.name, routerDep, props, _module) ?? undefined) : [];
+  const promitives = ["String", "Boolean", "Function", "Array"];
+  return _dependencies
+    ? _dependencies.map(({ name }) => {
+        if (promitives.includes(name)) return undefined;
+        const dependency = findDependency(name, routerDep, props, _module);
+        if (!dependency) {
+          logger.red(`${name} is not provided properly in ${_module?.constructor?.name}.`);
+          throw new Error();
+        }
+        return dependency;
+      })
+    : [];
 }
 
 export const dependencyMapperFactory = (app: RouterProps) => merge(mapDependencies, app);

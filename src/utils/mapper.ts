@@ -9,7 +9,7 @@ import {
   RouterMapper,
   RouterMapperFactory,
 } from "../interface";
-import { dependencyMapperFactory, sanitizePath } from "./helpers";
+import { dependencyMapperFactory, logger, sanitizePath } from "./helpers";
 
 const mapModules: ModuleMapperFactory = (router, app, parentModule = null): ModuleMapper => (imported) => {
   let args: any[] = [];
@@ -81,11 +81,13 @@ const routeMapper: RouterMapperFactory = (router, app, _module = null): RouterMa
     router.addRouteToList(route, _module);
 
     if (route?.children !== undefined && route?.loadChildren !== undefined) {
-      throw new Error(`Property 'loadChildren' can't be used with 'children' in route '${route.path}'`);
+      logger.red(`Property 'loadChildren' can't be used with 'children' in route '${route.path}'`);
+      throw new Error();
     }
 
     if (route?.controller !== undefined && route?.loadChildren !== undefined) {
-      throw new Error(`Property 'loadChildren' can't be used with 'controller' in route '${route.path}'`);
+      logger.red(`Property 'loadChildren' can't be used with 'controller' in route '${route.path}'`);
+      throw new Error();
     }
 
     // Check if route has children
@@ -98,9 +100,7 @@ const routeMapper: RouterMapperFactory = (router, app, _module = null): RouterMa
       route
         ?.loadChildren()
         .then(mapModules(router, app, _module ?? { path: route.path }))
-        .catch((error) => {
-          console.log(`\x1b[31m${error.toString()}\x1b[0m`, error);
-        });
+        .catch((error) => console.log(error));
     }
   };
 
