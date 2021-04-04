@@ -281,7 +281,7 @@ export type MayaJsNextfunction = (error?: any) => Promise<void> | void;
 
 export type ExpressJsMiddleware = (req: MayaJsRequest, res: MayaJsResponse, next: MayaJsNextfunction, error: any) => void;
 
-export type MayaJsMiddleware = (context: MayaJsContext, next: MayaJsNextfunction) => void;
+export type MayaJsMiddleware = (context: MayaJsContext, next: MayaJsNextfunction, error: any) => void;
 
 export type Middlewares = ExpressJsMiddleware | MayaJsMiddleware;
 
