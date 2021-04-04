@@ -213,7 +213,7 @@ const child = {
 
 const parent = {
   path: "user",
-  children: [child], // This is a list of routes. Also a `child` route can also have its own `children` and so on.
+  children: [child], // This is a list of routes.
 };
 
 app.add([parent]);
@@ -290,6 +290,10 @@ class UsersController extends Controller {
     this.userServices.add();
   }
 }
+```
+
+```
+NOTE: A `child` route can also have its own `children`.
 ```
 
 ## MODULE
