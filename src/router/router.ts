@@ -59,7 +59,7 @@ const send: ResponseSender = async (req, res, parsedUrl) => {
 
   if (!route) {
     // Route was not found. Send back an error message
-    return res.send({ message: `Route path of '${routePath}' was not found!` }, 404);
+    return res.send({ message: `${method}: '${routePath}' was not found!` }, 404);
   }
 
   try {
