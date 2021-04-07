@@ -39,118 +39,345 @@ npm i @mayajs/router
 ## Features
 
 - Simple interface
+- Built with TypeScript
 - Uses native Nodejs API
-- Built in body parser
-- Support for [ExpressJS Middlewares](https://expressjs.com/en/resources/middleware.html)
-- Compatible with typescript
-- ES6 compatible
-- Super ligthweight
-- No dependencies
+- Supports beginners to advance syntaxes
+- Can be use both `Function` based and `Class` based coding style
+- Dependency Injection
 - Fast execution
 - Easy to learn
+- Modular code
 
 ## Quick Start
 
 The easiest way to get started is to create a simple route
 
 ```ts
-import Router from "@mayajs/router";
+import maya from "@mayajs/router";
 import http from "http";
 
-const PORT = process.env.PORT || 3000; // This is not required
-const router = new Router();
+const PORT = 3000;
+const app = maya();
 
-// Define your routes method in this manner
-router.get("path", ({ res, req, params, query, body }) => {
-  res.send({ message: "Hello, World" });
-});
+app.add([
+  {
+    path: "/",
+    GET: () => "Hello, World",
+  },
+]);
 
-// Pass the router and initialize it for used
-http.createServer(router.init).listen(PORT, () => {
-  console.log("Server listening on port", PORT, "...");
-});
+http.createServer(app).listen(PORT, () => console.log(`Server listening on port ${PORT}.`));
 ```
 
-## Chaining
+## ROUTE
 
-You can also chain your methods like this for easy management of routes.
+Defining routes in MayaJs is like creating a JSON object.
 
 ```ts
-router
-  .get("path", ({ res, req }) => {
-    // Do your thing here
-  })
-  .post("path", ({ res, req }) => {
-    // Do your thing here
-  })
-  .put("path", ({ res, req }) => {
-    // Do your thing here
-  })
-  .delete("path", ({ res, req }) => {
-    // Do your thing here
-  });
+const user = {
+  path: "user",
+  GET: () => {
+    //  ...
+  },
+  POST: () => {
+    //  ...
+  },
+  PUT: () => {
+    //  ...
+  },
+  PATCH: () => {
+    //  ...
+  },
+  DELETE: () => {
+    //  ...
+  },
+  OPTIONS: () => {
+    //  ...
+  },
+};
 ```
 
-## Params
-
-We also support `request params` like what other routing library implemented. Just add **:** infront of your named route i.e. `/user/:id` and it will treat the `:id` as a params.
+As seen above each method name has a `callback` function. Mayajs will set the correct `content-type` based on what the method callback will return.
 
 ```ts
-router.get("path/:id", ({ res, req, params, query, body }) => {
-  // Access id using req.params object
-  req.params.id;
-
-  // or access it using params variable
-  params.id;
-});
+const route = {
+  path: "user",
+  GET: () => {
+    // This will return `undefined`
+    // This will have a content-type of "text/plain"
+  },
+  POST: () => {
+    return "Hello"; // This will have a content-type of "text/plain"
+  },
+  PUT: () => {
+    return { message: "Hello" }; // This will have a content-type of "application/json"
+  },
+  PATCH: () => {
+    return "<h1>Hello</h1>"; // This will have a content-type of "text/html"
+  },
+};
 ```
 
-## Query String
-
-To get the query string you can call the `query` object inside the request object or via function parameters.
+Incase you need to use a middleware for an specific route method you need to create a route object instead.
 
 ```ts
-router.get("path", ({ res, req, params, query, body }) => {
-  // Access query strings using req.query object
-  req.query.limit;
-
-  // or access it using query variable
-  query.limit;
-});
+const route = {
+  path: "user",
+  GET: {
+    middlewares: [middleware],
+    callback: () => {
+      // ...
+    },
+  },
+};
 ```
 
-## Request Object
+## PARAMS
 
-If you think there are alot of parameters on your callback function you can remove them.
-Params, query and body are optional variables. They are also accessible inside the `req` object.
+MayaJs passes a context object on each route method. You can acces the route params by destructuring the context object on the callback method.
 
 ```ts
-router.get("path", ({ res, req }) => {
-  req.params;
-  req.query;
-  req.body;
-});
+const route = {
+  path: "user/:id",
+  GET: ({ params }) => {
+    // `params` object contains the value of `id` define on the path above e.g. `user/hello`
+    return params.id; // This has a value of "hello"
+  },
+};
 ```
 
-#### NOTE:
+## QUERY STRING
 
-> The `req.body` object is already parsed for **Content-Type** of `application/json, application/x-www-form-urlencoded and multipart/form-data`.
-> For `multipart/form-data` with files we are not yet supporting it.
-
-## Middlewares
-
-We treat a middleware as another callback function. MayaJS router supports **ExpressJS** middleware as well as our own middlewares.
-To use a middleware see example below:
+You can also access the query string using the context object provided by MayaJs on your route method callback function.
 
 ```ts
-router.use((res, req, next, error) => {
+const route = {
+  path: "user",
+  GET: ({ query }) => {
+    // `query` object contains all the value on your query string e.g. `user?id=1`
+    return query.id; // This has a value of 1
+  },
+};
+```
+
+## BODY
+
+Request body is also accessible in the context but you need a middleware before you can actually uses. There is a popular middleware called [body-parser](https://www.npmjs.com/package/body-parser) that we can use to achieve this.
+
+```ts
+import maya from "@mayajs/router";
+// Third party middleware you need to install
+import bodyParser from "body-parser";
+
+const app = maya();
+
+// Initialize body parser for mayajs to use it internally
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+const route = {
+  path: "user",
+  POST: ({ body }) => {
+    // `body` object contains all the value from the request body
+    return body; // This has a value of req.body
+  },
+};
+
+app.add([route]);
+```
+
+## MIDDLEWARES
+
+As seen above how we used third party middlewares to parse the request body. We can also create our own middlewares. Although MayaJs supports all [ExpressJs Middlewares](https://expressjs.com/en/resources/middleware.html), we also can create a `MayaJsMiddleware` of our own. The context is where you can access `params, query and body` objects.
+
+```ts
+router.use((context, next, error) => {
   // This `error` variable comes from the previous middleware
   console.log(error);
 
   // The `next` function will trigger the end of this callback function
   // and execute the next middleware in the list
-  next();
+  next("Error message or any value that you want to pass to the next middleware");
 });
+```
+
+## CHILD ROUTES
+
+A child route is a route that appended to its parent route. It can be added using the `children` property from the route object.
+
+```ts
+const child = {
+  path: "child",
+  GET: () => "This is from a child route", // You can call this route by `users/child`
+};
+
+const parent = {
+  path: "user",
+  children: [child], // This is a list of routes.
+};
+
+app.add([parent]);
+```
+
+## CONTROLLER
+
+A controller is a class that act as a replacement for the route method objects. It can be used to make your code more modular and manageable when your code base get bigger.
+
+```ts
+class UsersController extends Controller {
+  GET() {
+    return "Hello form UsersController";
+  }
+
+  // You can also add additional route method like this
+  POST() {
+    // ...
+  }
+
+  // Other routes available are PUT, PATCH, DELETE and OPTIONS
+}
+
+app.add([
+  {
+    path: "user",
+    controller: UsersController,
+  },
+]);
+```
+
+If you want to add middleware a middleware to a specific method you can add the `middleware` property in a controller.
+
+```ts
+class UsersController extends Controller {
+  middleware = {
+    GET: [middleware], // This middleware will be added to the `GET` method below
+  };
+
+  GET() {
+    //  ...
+  }
+}
+```
+
+```
+NOTE: A controller has no `children` property
+```
+
+## SERVICES
+
+A service is an injectable class that can be used inside of a controller or another service.
+
+```ts
+export class UsersServices extends Services {
+  // Every function inside the service can be accessed by the class its injected
+  // All public properties are also accessible
+  // A service is instatiated once and making it a singleton
+
+  add() {
+    // ...
+  }
+}
+
+class UsersController extends Controller {
+  constructor(userServices: UsersServices) {
+    super();
+  }
+
+  addUser() {
+    // This `add` function coming from the `UsersService`.
+    // It is accessible on this controller via dependency injection.
+    // MayaJs automatically instantiated it and created it singleton instance.
+    this.userServices.add();
+  }
+}
+```
+
+```
+NOTE: A `child` route can also have its own `children`.
+```
+
+## MODULE
+
+A module is a like a container of routes, controller and services that act on its own. This will allow your code to modular and shareable accross all routes.
+
+```ts
+class UsersModule extends MayaJsModule {
+  // List of `module` or `services` that this module will use for its controllers
+  imports = [];
+  // List of controllers that this module will use
+  declarations = [];
+  // List of services that can be use inside this module
+  providers = [];
+  // List of services that this module will exports that can be used by other modules
+  exports = [];
+  // List of dependencies that will be injected to this module
+  dependencies = [];
+}
+```
+
+As you can see when we create a module we dont have any way to add routes on it. Below is an example of implementation of how to add a `RouterModule` for this module to add routes.
+
+```ts
+import { UsersController, UsersIdController } from "./controller";
+import { RouterModule } from "@mayajs/router";
+import { UsersServices } from "./services";
+
+// Define the routes
+const routes = [
+  {
+    path: "/",
+    controller: UsersController,
+  },
+  {
+    path: ":id",
+    controller: UsersIdController,
+  },
+];
+
+export class UsersModule extends MayaJsModule {
+  // User `RouterModule.forRoot` to inject the routes
+  imports = [RouterModule.forRoot(routes)];
+  // Declare the controllers that will be used inside the routes
+  declarations = [UsersIdController, UsersController];
+}
+```
+
+## CUSTOM MODULE
+
+Unlike the common mayajs module, custom modules provide other functionality aside from managing your controllers. One example of this the `RouterModule` that is reponsible for adding routes to your module. A key concept of a custom module is it has an `invoke` and `forRoot` function that provides additional functionalities.
+
+```ts
+export class UsersModule extends CustomModule {
+  invoke() {
+    // This function will run after an instance of this module is created
+    // But the providers will stay singleton on each instance
+  }
+
+  static forRoot(options: any) {
+    return {
+      module: UsersModule, // Returns the current module reference
+      providers: [], // List of providers that this module will use on its controllers
+    };
+  }
+}
+```
+
+Now we know how to create a module but how we can call it on our routes. We are now introducing to `loadChildren` property of our route object. MayaJs will automatically resolve the module asynchronously when the path is added on the route list.
+
+```ts
+import maya from "@mayajs/router";
+import http from "http";
+
+const app = maya();
+
+app.add([
+  {
+    path: "users",
+    // We are using dynamic importing so we don't need it to manually import the module in the file
+    // MayaJs will resolve the module asynchronously
+    loadChildren: () => import("./users.module").then((m) => m.UsersModule),
+  },
+]);
 ```
 
 ## Collaborating

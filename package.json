@@ -1,17 +1,23 @@
 {
   "name": "@mayajs/router",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Simple NodeJS routing library created using Typescript",
   "main": "lib/index.js",
   "scripts": {
-    "start": "rimraf lib && tsc -w",
-    "prepack": "rimraf lib && tsc"
+    "clean": "rimraf interface && rimraf index.js && rimraf index.d.ts && rimraf utils && rimraf router && rimraf lib",
+    "tgz": "rimraf *.tgz",
+    "package": "node ./scripts/clean-package.js",
+    "start": "npm run clean && npm run tgz && tsc -w",
+    "prepack": "npm run clean && npm run package && tsc --outDir ."
   },
   "keywords": [
     "nodejs",
     "server",
     "router",
     "typescript",
+    "library",
+    "REST",
+    "API",
     "mayajs"
   ],
   "author": "Mark Anthony C. Ignacio",
@@ -29,6 +35,9 @@
   "files": [
     "LICENSE",
     "README.md",
-    "lib"
+    "interface",
+    "utils",
+    "router",
+    "**.d.ts"
   ]
 }

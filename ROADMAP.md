@@ -1,8 +1,45 @@
-## v0.3.0
+## v0.3.0 - _(**4/4/2021**)_
 
-- [ ] route params validation
-- [ ] blocking of specific routes
-- [ ] 'multipart/form-data' for files
+- [x] MayaModule
+- [x] CustomModule
+- [x] RouterModule
+- [x] Controller
+- [x] Sercices
+- [x] Dependecy Injection
+- [x] Logger
+- [x] Module.imports
+- [x] Module.declaration
+- [x] Module.providers
+- [x] Module.dependencies
+- [x] Module.exports
+- [x] Module.parent
+- [x] handler()
+- [x] send()
+- [x] app.init()
+- [x] app.use()
+- [x] app.add()
+- [x] app.routes
+- [x] app.routesWithParams
+- [x] app.visitedRoutes
+- [x] app.context
+- [x] app.dependencies
+- [x] app.headers
+- [x] router.addRouteToList()
+- [x] router.findRoute()
+- [x] router.executeRoute()
+- [x] router.visitedRoute()
+- [x] RouterMapper
+- [x] Map dependencies function
+- [x] Map declarations function
+- [x] Map providers function
+- [x] `utils/helpers` module
+- [x] `utils/mapper` module
+- [x] `utils/merge` module
+- [x] `utils/regex` module
+- [x] helpers.logger
+- [x] helpers.getFunctionProps()
+- [x] helpers.dependencyMapperFactory()
+- [x] helpers.sanitizePath()
 
 ## v0.2.0 - _(**7/19/2020**)_
 
