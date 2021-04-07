@@ -1,5 +1,5 @@
-import { MethodNames, RouteCallback, RouteMethod, RouterMethods, RouterProps, RouterFunction } from "../interface";
-import { mapDependencies } from "../utils/helpers";
+import { MethodNames, RouteCallback, RouteMethod, RouterMethods, RouterProps, RouterFunction, MayaJSRouteParams } from "../interface";
+import { mapDependencies, sanitizePath } from "../utils/helpers";
 import merge from "../utils/merge";
 import regex from "../utils/regex";
 import { props } from "./router";
@@ -26,12 +26,28 @@ router.addRouteToList = function (route, _module) {
   // Initialize path if undefined
   if (!this[list][path]) this[list][path] = {} as any;
 
+  // Set route to list with path as a key
+  const setList = (key: MethodNames, options: MayaJSRouteParams) => (this[list][path][key] = options);
+
+  // List of request method name
   const methods = ["GET", "POST", "PUT", "HEAD", "DELETE", "OPTIONS", "PATCH"];
 
   if (route.controller && route.hasOwnProperty("controller")) {
     const dependencies = mapDependencies(this.dependencies, _module, route?.dependencies);
     const controller = new route.controller(...dependencies);
     const controllerProps = Object.getOwnPropertyNames(Object.getPrototypeOf(controller)) as MethodNames[];
+    const routes = (controller as any)["routes"];
+
+    routes.map(({ middlewares, methodName, path: routePath, requestMethod }: any) => {
+      // Create callback function
+      const callback = (args: any) => (controller as any)[methodName](args) as RouteCallback;
+
+      // Create parent route
+      const parent = path === "" ? "/" : path;
+
+      // Add controller route to list
+      this.addRouteToList({ path: sanitizePath(parent + routePath), middlewares, [requestMethod]: callback });
+    });
 
     controllerProps.map((key: MethodNames) => {
       if (methods.includes(key)) {
@@ -41,7 +57,7 @@ router.addRouteToList = function (route, _module) {
         const callback = (args: any) => controller[key](args) as RouteCallback;
 
         // Add route to list
-        this[list][path][key] = { middlewares, dependencies: [], method: key, regex: regex(path), callback };
+        setList(key, { middlewares, dependencies: [], method: key, regex: regex(path), callback });
       }
     });
   }
@@ -71,7 +87,7 @@ router.addRouteToList = function (route, _module) {
         const callback = current?.callback ?? routeCallback;
 
         // Add route to list
-        this[list][path][key] = { middlewares, dependencies: [], method: key, regex: regex(path), callback };
+        setList(key, { middlewares, dependencies: [], method: key, regex: regex(path), callback });
       }
     });
   }

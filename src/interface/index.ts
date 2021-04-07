@@ -112,6 +112,9 @@ export type RouteCallback = (ctx: MayaJsContext) => Promise<any> | any;
 export type RouteCallbackFunction = (ctx: MayaJsContext) => RouteCallbackFunction;
 
 export interface Route {
+  /**
+   * A list of dependencies for a controller
+   */
   dependencies?: any[];
   /**
    * An array of MayaJS or other third party middlewares. These middlewares are called before the callback function
@@ -203,10 +206,6 @@ export interface MayaJsRoute extends Route, Partial<RouteMethodCallbacks> {
    * Lazy load a module
    */
   loadChildren?: () => Promise<ModuleCustomType>;
-  /**
-   * A list of dependencies for a controller
-   */
-  dependencies?: any[];
 }
 
 export interface MayaJSRouteParams extends Route {
